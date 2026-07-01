@@ -4,8 +4,8 @@ A personal workout tracking app for iOS built with Expo + React Native. Targets 
 
 ## Tech Stack
 
-- **Expo SDK 56** with Expo Router (file-based routing, `src/app/` directory)
-- **React Native 0.85 / React 19**
+- **Expo SDK 54** with Expo Router (file-based routing, `src/app/` directory)
+- **React Native 0.81 / React 19**
 - **TypeScript 6**
 - **AsyncStorage** for all persistence (JSON blobs)
 - **react-native-reanimated** and **react-native-gesture-handler** already installed
