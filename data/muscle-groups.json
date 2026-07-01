@@ -1,0 +1,167 @@
+{
+  "groups": [
+    {
+      "group": "adductors",
+      "group_label": "Adductors",
+      "muscle_count": 5,
+      "muscles": [
+        "adductor_brevis",
+        "adductor_longus",
+        "adductor_magnus",
+        "gracilis",
+        "pectineus"
+      ]
+    },
+    {
+      "group": "back",
+      "group_label": "Back",
+      "muscle_count": 12,
+      "muscles": [
+        "erector_spinae",
+        "infraspinatus",
+        "latissimus_dorsi",
+        "multifidus",
+        "rhomboids",
+        "subscapularis",
+        "supraspinatus",
+        "teres_major",
+        "teres_minor",
+        "trapezius_lower",
+        "trapezius_middle",
+        "trapezius_upper"
+      ]
+    },
+    {
+      "group": "biceps",
+      "group_label": "Biceps",
+      "muscle_count": 4,
+      "muscles": [
+        "biceps_brachii_long_head",
+        "biceps_brachii_short_head",
+        "brachialis",
+        "brachioradialis"
+      ]
+    },
+    {
+      "group": "calves",
+      "group_label": "Calves",
+      "muscle_count": 4,
+      "muscles": [
+        "gastrocnemius_lateral",
+        "gastrocnemius_medial",
+        "soleus",
+        "tibialis_anterior"
+      ]
+    },
+    {
+      "group": "chest",
+      "group_label": "Chest",
+      "muscle_count": 4,
+      "muscles": [
+        "pectoralis_major_clavicular",
+        "pectoralis_major_sternal",
+        "pectoralis_minor",
+        "serratus_anterior"
+      ]
+    },
+    {
+      "group": "core",
+      "group_label": "Core",
+      "muscle_count": 5,
+      "muscles": [
+        "external_obliques",
+        "internal_obliques",
+        "quadratus_lumborum",
+        "rectus_abdominis",
+        "transverse_abdominis"
+      ]
+    },
+    {
+      "group": "forearms",
+      "group_label": "Forearms",
+      "muscle_count": 4,
+      "muscles": [
+        "pronator_teres",
+        "supinator",
+        "wrist_extensors",
+        "wrist_flexors"
+      ]
+    },
+    {
+      "group": "glutes",
+      "group_label": "Glutes",
+      "muscle_count": 4,
+      "muscles": [
+        "gluteus_maximus",
+        "gluteus_medius",
+        "gluteus_minimus",
+        "piriformis"
+      ]
+    },
+    {
+      "group": "hamstrings",
+      "group_label": "Hamstrings",
+      "muscle_count": 4,
+      "muscles": [
+        "biceps_femoris_long",
+        "biceps_femoris_short",
+        "semimembranosus",
+        "semitendinosus"
+      ]
+    },
+    {
+      "group": "hip_flexors",
+      "group_label": "Hip Flexors",
+      "muscle_count": 3,
+      "muscles": [
+        "iliopsoas",
+        "sartorius",
+        "tensor_fasciae_latae"
+      ]
+    },
+    {
+      "group": "neck",
+      "group_label": "Neck",
+      "muscle_count": 3,
+      "muscles": [
+        "levator_scapulae",
+        "scalenes",
+        "sternocleidomastoid"
+      ]
+    },
+    {
+      "group": "quadriceps",
+      "group_label": "Quadriceps",
+      "muscle_count": 4,
+      "muscles": [
+        "rectus_femoris",
+        "vastus_intermedius",
+        "vastus_lateralis",
+        "vastus_medialis"
+      ]
+    },
+    {
+      "group": "shoulders",
+      "group_label": "Shoulders",
+      "muscle_count": 3,
+      "muscles": [
+        "anterior_deltoid",
+        "lateral_deltoid",
+        "posterior_deltoid"
+      ]
+    },
+    {
+      "group": "triceps",
+      "group_label": "Triceps",
+      "muscle_count": 4,
+      "muscles": [
+        "anconeus",
+        "triceps_lateral_head",
+        "triceps_long_head",
+        "triceps_medial_head"
+      ]
+    }
+  ],
+  "total_groups": 14,
+  "total_muscles": 63
+}
