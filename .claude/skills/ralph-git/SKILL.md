@@ -1,6 +1,6 @@
 ---
 name: ralph-git
-description: Git branching, commit, and worktree discipline for Ralph-loop / agentic coding iteration. Defines a three-tier commit model (main / feature / task-scratch), tag-based progress tracking so a fresh-context agent can reconstruct status from git alone, a rebase-first workflow for landing work, and how to keep agent-instruction docs (CLAUDE.md, specs, .claude/) from getting lost in disposable scratch history. Use when running an autonomous or semi-autonomous coding loop where git state needs to be legible without conversation memory and safely reversible at every granularity.
+description: Git branching, commit, and worktree discipline for Ralph-loop / agentic coding iteration. Defines a three-tier commit model (main / feature / task-scratch), tag-based progress tracking so a fresh-context agent can reconstruct status from git alone, a review-handoff tag that hands a task to a fresh-context reviewer without a prose handoff doc, a rebase-first workflow for landing work, and how to keep agent-instruction docs (CLAUDE.md, specs, .claude/) from getting lost in disposable scratch history. Use when running an autonomous or semi-autonomous coding loop where git state needs to be legible without conversation memory and safely reversible at every granularity.
 ---
 
 # Ralph Git
@@ -34,8 +34,34 @@ wip(task-3): scaffold ProgramForm, save handler not wired — next: wire AsyncSt
 
 Recovery after a context reset: `git log task/2-done..HEAD`.
 
+**Handing off a task for review** — once the gate is green, the
+coder's last scratch commit states plainly what's ready:
+
+```
+wip(task-3): ready for review — clamp calibration effort to 1-5, gate green
+```
+
+```bash
+git tag task/3-review            # ready-for-review boundary, distinct from task/3-done
+```
+
+The reviewer's diff range is `task/2-done..task/3-review` — the same
+range-reading pattern as context-reset recovery above, just reused as
+the review scope. The coder's only touch to the spec doc is one line
+recording this tag; no prose, no implementation notes. Anything about
+*why* a non-obvious implementation choice was made goes as a comment
+in the code next to that choice, not in the spec and not in a separate
+handoff doc — the reviewer should be checking the task against the
+spec and the code, not against the coder's own account of itself.
+
+If the reviewer requests changes: more scratch commits, then move the
+same tag to the new tip (`git tag -f task/3-review`) rather than
+minting a new one per round — one tag per task to track, always
+pointing at the current ready-for-review state.
+
 **Completing a task (tier 3 -> tier 2)** — once its verification gate
-(typecheck/lint/tests) passes and the reviewer subagent approves:
+(typecheck/lint/tests) passes and the reviewer subagent approves the
+`task/N-review` tag:
 
 ```bash
 git reset --soft task/2-done     # previous boundary tag (task/0-done for task 1)

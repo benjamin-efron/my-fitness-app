@@ -41,3 +41,6 @@ example
 # generated native folders
 /ios
 /android
+
+# ephemeral reviewer output — working state, not a permanent record
+.claude/review/

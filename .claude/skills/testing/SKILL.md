@@ -28,18 +28,17 @@ green. Every rule below exists to close one of those gaps.
   review.** None of the three commands below substitutes for another
   — typecheck and lint catch classes of bugs tests don't, and vice
   versa.
-- **No snapshot tests.** `toMatchSnapshot()` passes trivially on first
-  run and gets blindly re-recorded the moment it breaks — it never
-  actually blocks a bad change. Write an explicit assertion instead.
-- **No coverage-percentage gates.** Coverage rewards executing a line,
-  not asserting an outcome — a test that touches every branch and
-  asserts nothing reports 100% and verifies nothing.
 - **Query by what a user perceives**, not implementation detail:
   `getByText`/`getByRole`/`getByLabelText`; `testID` only as a last
   resort. Never assert on internal state or props — that couples the
   test to implementation instead of behavior, which is exactly what
   makes a test easy to keep "passing" through a rewrite that breaks
   the feature.
+- **Describe what every test validates.** The `it`/`test` description
+  states the behavior or corner case being covered, e.g. `it('clamps
+  effort rating above 5 down to 5', ...)`, not `it('works', ...)`. A
+  reader should know what broke from the test name and file's failure
+  output alone, without opening the assertion.
 
 ## Tools & commands
 
@@ -54,6 +53,12 @@ green. Every rule below exists to close one of those gaps.
   pinned to `13.3.3`) — component tests. Pinned because the current
   `14.x` line depends on an unstable `test-renderer` peer package;
   revisit once that stabilizes.
+- **No snapshot tests.** `toMatchSnapshot()` passes trivially on first
+  run and gets blindly re-recorded the moment it breaks — it never
+  actually blocks a bad change. Write an explicit assertion instead.
+- **No coverage-percentage gates.** Coverage rewards executing a line,
+  not asserting an outcome — a test that touches every branch and
+  asserts nothing reports 100% and verifies nothing.
 
 ## Where tests live
 
