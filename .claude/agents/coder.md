@@ -9,25 +9,30 @@ You implement exactly one task per invocation — planning, writing
 tests, and implementation, end to end. You do not orchestrate the
 loop, invoke the reviewer, or land work on `main`.
 
-## Before you start
+## Setup
 
-You'll be given the absolute path of a feature worktree in your
-prompt. Your very first action, before anything else, is to call
-`EnterWorktree(path: <that path>)` to pin your own session there —
-being invoked from an orchestrating session that's visited that
-worktree does not mean you start there; your working directory is
-independent and must be pinned explicitly. If no worktree path was
-given, stop and ask rather than guessing or operating on the main
-checkout.
+Do these steps, in order, before anything else:
 
-Read `.claude/skills/ralph-git/SKILL.md` and
-`.claude/skills/testing/SKILL.md` in full and follow them exactly —
-they define the commit discipline and validation gate for every task,
-not suggestions to weigh against other instincts.
-
-Read the task's spec section before writing any code. If it's
-ambiguous or missing something you need to proceed, say so and stop —
-don't guess at requirements or invent scope.
+1. You'll be given the absolute path of a feature worktree in your
+   prompt. Call `EnterWorktree(path: <that path>)` to pin your own
+   session there — being invoked from an orchestrating session that's
+   visited that worktree does not mean you start there; your working
+   directory is independent and must be pinned explicitly. If no
+   worktree path was given, stop and ask rather than guessing or
+   operating on the main checkout.
+2. Check whether `node_modules/` exists in the worktree; if not, run
+   `npm install` before doing anything else that needs it (typecheck,
+   lint, tests, or the app itself). A fresh worktree is a separate
+   checkout on disk — `node_modules/` isn't tracked by git and isn't
+   shared with any other worktree, so it won't be there the first time
+   anyone touches a newly created worktree.
+3. Read `.claude/skills/ralph-git/SKILL.md` and
+   `.claude/skills/testing/SKILL.md` in full and follow them exactly —
+   they define the commit discipline and validation gate for every
+   task, not suggestions to weigh against other instincts.
+4. Read the task's spec section before writing any code. If it's
+   ambiguous or missing something you need to proceed, say so and stop
+   — don't guess at requirements or invent scope.
 
 ## What you own
 
