@@ -1,7 +1,7 @@
 # Spec: Exercise Calibration
 
-Status: **ready for planning** — open questions resolved; `plan.md`
-for this feature has not been written yet (see `BACKLOG.md`).
+Status: **planned** — see `plan.md` for the task breakdown the
+`coder`/`reviewer` loop will work through.
 
 ## Summary
 
@@ -27,15 +27,31 @@ selection step, just the data-capture flow that makes it possible.
 
 ## User-facing behavior
 
+### Muscle group display (applies everywhere muscles are shown)
+
+Anywhere the app shows an exercise's muscles — the list card and the
+drill-in header — primary and secondary muscles are visually
+distinguished from each other: primary muscles use a more vibrant/
+prominent treatment, secondary muscles a more muted one. This is a
+two-tier distinction only (primary vs. secondary), not a color per
+individual muscle group — a distinct color per muscle name would be
+more visual noise than signal at this list density.
+
 ### 1. Exercise list (`/calibrate`)
 
 - Shows every exercise in the exercise database (`data/exercises.json`)
-  as a list. Each row shows:
+  as a list. Each row (card) shows:
   - name
-  - number of muscle groups worked (primary + secondary combined
-    count)
+  - all muscle groups worked, split into a primary list and a
+    secondary list (using the primary/secondary highlighting
+    convention above), not just a count
   - equipment required
   - whether it's been calibrated yet (e.g. a checkmark/badge)
+- **Sort order**: default sort is by total muscle groups worked
+  (primary + secondary combined count), most first — this is the
+  "highest-value exercise" signal described in the Summary. See the
+  target muscle group filter below for how sort changes when it's
+  active.
 - A **search bar** filters the list by exercise name as the user
   types.
 - A **hide calibrated** toggle removes already-calibrated exercises
@@ -43,16 +59,25 @@ selection step, just the data-capture flow that makes it possible.
 - **Muscle group filter** — options are every distinct value appearing
   across `primaryMuscles`/`secondaryMuscles` in the exercise database,
   rolled up in code (not a fixed list maintained by hand). User picks
-  one or more; an exercise matches if the filtered group appears in
-  *either* its primary or secondary muscles.
+  one or more; an exercise matches if a filtered group appears in
+  *either* its primary or secondary muscles — there's no separate
+  "match as primary only" / "match as secondary only" toggle.
+  - **Target muscle group sort.** When exactly one muscle group is
+    selected in this filter (a single "target"), the sort order
+    changes from the default total-count sort to a two-tier sort:
+    exercises where the target is a *primary* muscle first, then
+    exercises where it's only a *secondary* muscle (ties within each
+    tier fall back to the default total-count sort). A toggle lets the
+    user flip which tier comes first (secondary-matches before
+    primary-matches). This sort only applies with a single target
+    selected — filtering on multiple groups at once uses the default
+    sort.
 - **Equipment filter** — options are every distinct value appearing in
   `equipment` across the exercise database, rolled up in code the same
   way. User picks one or more equipment types to filter to. This is a
   transient, in-the-moment filter only — the app does not track or
   persist what equipment the user owns (that's the separate, not-yet-
   built "My Gym" section in `BACKLOG.md`).
-- No custom sort order — the muscle-group count is displayed per row,
-  but the list is not re-sorted by it.
 - Tapping a row opens the calibration flow (drill-in) for that
   exercise, whether or not it's already calibrated.
 
@@ -61,7 +86,8 @@ selection step, just the data-capture flow that makes it possible.
 Single screen per exercise (not a multi-step wizard).
 
 - **Header**: exercise name, its specific primary and secondary
-  muscles (named, not just a count like the list view), and equipment
+  muscles (named, not just a count like the list view, using the
+  primary/secondary highlighting convention above), and equipment
   required.
 - **Form**:
   - **Reps completed** — integer, how many reps were completed to
@@ -69,12 +95,19 @@ Single screen per exercise (not a multi-step wizard).
   - **Weight used** — the weight for that failure set, in lbs (plain
     numeric field, no unit picker — lbs is the only supported unit for
     now).
-  - **Time taken** — populated via an in-app **stopwatch**: a
-    start/stop control the user triggers around performing the
-    failure set. Doesn't need to be precise to the frame — a plain
-    running timer with start/stop is enough. The resulting elapsed
-    time populates the time field, which stays a plain editable
-    number afterward in case the user needs to correct it.
+  - **Time taken** — two supported entry modes, user's choice:
+    - **Precise** — either an in-app **stopwatch** (start/stop control
+      the user triggers around performing the failure set; doesn't
+      need frame-level precision, a plain running timer is enough) or
+      typing a number of seconds directly. Both populate the same
+      numeric seconds value, and it stays a plain editable field
+      afterward either way — the stopwatch is a convenience for
+      filling it in, not the only way to.
+    - **Approximate** — for when the user doesn't want to time a set
+      precisely, a coarse **short / moderate / long** bucket instead
+      of a number.
+    A given calibration stores one or the other, not both (see Data
+    shape).
   - **Mental effort** — a 5-point thumbs scale (two-thumbs-down /
     thumbs-down / neutral / thumbs-up / two-thumbs-up), stored as an
     integer 1–5. Requires an explicit tap — no default value. Exact
@@ -82,8 +115,9 @@ Single screen per exercise (not a multi-step wizard).
     plan, not decided here.
   - **Notes** — free-text, optional, for anything the fields above
     don't capture.
-- A **Save** action, disabled until reps, weight, time, and effort are
-  all explicitly filled in (notes stay optional).
+- A **Save** action, disabled until reps, weight, effort, and a time
+  value (precise or approximate) are all explicitly filled in (notes
+  stay optional).
 - Saving writes the result to AsyncStorage (see Data shape) and
   returns to the exercise list, which reflects the updated calibration
   status for that exercise.
@@ -126,16 +160,24 @@ One JSON blob per exercise, keyed by exercise id:
 - Value:
 
 ```ts
+type TimeTaken =
+  | { kind: 'precise'; seconds: number }       // stopwatch or typed directly
+  | { kind: 'approximate'; bucket: 'short' | 'moderate' | 'long' };
+
 type CalibrationResult = {
   exerciseId: string;
   repsCompleted: number;   // reps to failure at weightUsed
   weightUsed: number;      // lbs
-  timeTakenSeconds: number; // from the in-app stopwatch (editable after)
+  time: TimeTaken;
   effort: number;          // 1-5, thumbs scale
   notes: string;           // "" if not provided
   calibratedAt: string;    // ISO 8601 timestamp, set on every save
 };
 ```
+
+`time` is a discriminated union rather than two nullable fields so a
+stored result can't end up with both a precise time and a bucket, or
+neither — every calibration has exactly one.
 
 Storing one key per exercise (rather than one blob for all results)
 keeps reads/writes on the list screen cheap — the list only needs to
@@ -149,10 +191,9 @@ know *whether* a result exists per exercise, not its contents.
   separate, later feature.
 - **No calibration history.** Only the latest result per exercise is
   kept; re-calibrating overwrites, it doesn't append.
-- **No custom sort order** on the exercise list — muscle-group count
-  and equipment are shown per row, but the list itself isn't
-  re-sorted by them. (The previously-backlogged "sort by muscle
-  groups hit" item is dropped in favor of this.)
+- **No per-muscle-group color coding.** Muscle display is a two-tier
+  primary/secondary distinction only, not a distinct color per muscle
+  name — see "Muscle group display" above.
 - **No persisted equipment inventory ("My Gym").** The equipment
   filter is transient and derived from the exercise database itself;
   tracking what equipment the user actually owns is the separate,

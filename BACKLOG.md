@@ -9,7 +9,7 @@ Setup to work through before resuming feature work under the Ralph loop pattern.
 ### Spec docs
 - ~~Spec template + location.~~ Done — see `specs/README.md`.
 - ~~Exercise Calibration spec.~~ Done — see `specs/exercise-calibration/spec.md`.
-- **Exercise Calibration `plan.md`.** Write the task breakdown for `specs/exercise-calibration/spec.md` per the plan.md conventions in `specs/README.md` — the spec is finalized but the feature has no task plan yet, so nothing can be picked up by the `coder` loop until this exists.
+- ~~Exercise Calibration `plan.md`.~~ Done — see `specs/exercise-calibration/plan.md`. 11 tasks, first blocked on the seed JSON being supplied (task 1).
 
 ### Also worth deciding before iterating
 - **AGENTS.md as source of truth.** Write `AGENTS.md` as the real instructions doc; have `CLAUDE.md` `@`-reference it so this harness and any AGENTS.md-native tooling read the same file instead of two drifting copies.
