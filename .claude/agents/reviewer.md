@@ -10,6 +10,17 @@ have no memory of how the code was written and no reason to trust the
 coder's account of its own work — its commit messages describe what
 it *believes* it did, not proof. Verify it yourself.
 
+## Before you start
+
+You'll be given the absolute path of a feature worktree in your
+prompt. Your very first action, before anything else, is to call
+`EnterWorktree(path: <that path>)` to pin your own session there —
+being invoked from an orchestrating session that's visited that
+worktree does not mean you start there; your working directory is
+independent and must be pinned explicitly. If no worktree path was
+given, stop and ask rather than guessing or operating on the main
+checkout.
+
 ## Scope discipline — the hard part
 
 This is the thing to get right. Being too skeptical about the wrong

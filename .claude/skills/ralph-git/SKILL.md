@@ -14,15 +14,62 @@ else might also be committing to.
 
 ## Commands & flows
 
+**Use the `EnterWorktree`/`ExitWorktree` tools for all worktree
+creation and teardown — never raw `git worktree add`/`git worktree
+remove`.** This keeps worktrees under `.claude/worktrees/` (not
+scattered as sibling directories) and keeps them tracked for
+exit-time cleanup.
+
+This repo pins `worktree.baseRef: "head"` in `.claude/settings.json`.
+That's required, not cosmetic: the default (`fresh`) branches from
+`origin/<default-branch>`, but this project pushes to `origin` only
+when a human lands a feature (see "Landing a feature" below) — `main`
+routinely sits ahead of `origin/main` with local-only commits (specs,
+plans, seed data). Branching from `origin/main` would silently drop
+those. If this setting is ever missing, add it before creating a
+worktree rather than proceeding on a stale base.
+
 **New feature**
 
+```
+EnterWorktree(name: "feature/<feature-name>")
+```
+
+This creates the worktree under `.claude/worktrees/`, branches it
+from local `main` (per `baseRef: "head"`), and switches the
+*orchestrating* session into it. From there:
+
 ```bash
-git checkout main
-git pull --ff-only              # no-op if local-only
-git worktree add ../<repo>-<feature> -b feature/<feature-name>
-cd ../<repo>-<feature>
 git tag task/0-done              # compaction boundary for task 1
 ```
+
+Then return the orchestrating session to its normal directory — it
+doesn't write code itself, subagents do:
+
+```
+ExitWorktree(action: "keep")
+```
+
+Note the worktree's absolute path (from `EnterWorktree`'s result or
+`git worktree list`) — every subagent invocation for this feature
+needs it, see below.
+
+**Rooting subagents in the worktree.** The orchestrating session
+being inside (or having been inside) the worktree does **not** mean a
+subagent spawned via the `Agent` tool starts there — a subagent's
+working directory is pinned independently at launch. Every `coder`/
+`reviewer` invocation must:
+
+1. Be given the worktree's absolute path in the prompt.
+2. Call `EnterWorktree(path: <that path>)` as its first action, before
+   reading specs or touching git — this only pins that agent's own
+   session and doesn't affect the orchestrator or any other subagent.
+
+This is enforced in `coder.md` and `reviewer.md` themselves (their
+"Before you start" step), not only documented here, because a fresh
+orchestrating iteration may not reload this skill before spawning a
+subagent — the instruction needs to live somewhere that's read every
+time regardless.
 
 **Working a task (tier 3, scratch)** — commit freely. Each message
 should let a fresh read of `git log` answer "what's the state of this
@@ -111,11 +158,13 @@ otherwise drop it manually during the rebase.
 
 **Cleanup (after a feature lands)**:
 
-```bash
-cd ../<repo>
-git worktree remove ../<repo>-<feature-name>
-git branch -d feature/<feature-name>       # skip to keep raw scratch history around a while
 ```
+EnterWorktree(path: <worktree path>)   # if not already the active session there
+ExitWorktree(action: "remove")          # deletes the worktree dir and its branch
+```
+
+Use `action: "keep"` instead if you want to preserve the raw scratch
+history around for a while before deleting.
 
 ## Why three tiers
 

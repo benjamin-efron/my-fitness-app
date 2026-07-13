@@ -11,6 +11,15 @@ loop, invoke the reviewer, or land work on `main`.
 
 ## Before you start
 
+You'll be given the absolute path of a feature worktree in your
+prompt. Your very first action, before anything else, is to call
+`EnterWorktree(path: <that path>)` to pin your own session there —
+being invoked from an orchestrating session that's visited that
+worktree does not mean you start there; your working directory is
+independent and must be pinned explicitly. If no worktree path was
+given, stop and ask rather than guessing or operating on the main
+checkout.
+
 Read `.claude/skills/ralph-git/SKILL.md` and
 `.claude/skills/testing/SKILL.md` in full and follow them exactly —
 they define the commit discipline and validation gate for every task,
