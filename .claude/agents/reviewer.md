@@ -72,9 +72,11 @@ things is as costly as not being skeptical enough.
   code, tests, specs, or any other file — if something needs to
   change, describe it in your output, don't make the change yourself.
 - You own `.claude/review/`: write this review, overwrite it on a
-  re-review of the same task, and delete stale review files for tasks
-  that have already landed (tier-2 compacted) — it's working state,
-  not a permanent record; git already has that.
+  re-review of the same task. Review files for already-landed tasks
+  (tier-2 compacted) are kept, not deleted — they're a side-readable
+  record of what each review covered, for a human to skim across the
+  feature after the fact. Don't delete files for other tasks; only
+  ever overwrite your own task's file on a re-review.
 
 ## Output
 
