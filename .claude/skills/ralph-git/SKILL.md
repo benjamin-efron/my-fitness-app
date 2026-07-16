@@ -108,12 +108,28 @@ pointing at the current ready-for-review state.
 
 **Completing a task (tier 3 -> tier 2)** — once its verification gate
 (typecheck/lint/tests) passes and the reviewer subagent approves the
-`task/N-review` tag:
+`task/N-review` tag. This step is the orchestrating session's job, not
+the coder's or reviewer's — it already owns the squash, so the doc and
+tag cleanup below happen in the same moment rather than drifting:
 
 ```bash
 git reset --soft task/2-done     # previous boundary tag (task/0-done for task 1)
+```
+
+`plan.md`'s Handoff line for this task still reads the review tag (the
+coder's only touch to that doc, per `specs/README.md`) — before
+committing, edit it to point at the done tag instead, so the doc never
+points at a tag that's about to be deleted:
+
+```
+**Handoff:** `task/3-review`   ->   **Handoff:** `task/3-done`
+```
+
+```bash
+git add specs/<feature>/plan.md  # the edit above, folded into the tier-2 commit
 git commit -m "task: <task-id> — <summary>  (spec: specs/<feature>/plan.md#<task-id>)"
 git tag task/3-done
+git tag -d task/3-review         # superseded — keeping it around only invites it going stale
 ```
 
 **Keeping the feature branch current with `main`** — only if something
@@ -124,6 +140,23 @@ hatch below). Do this before further task work and before landing:
 git fetch origin main            # if applicable
 git rebase main
 ```
+
+Rebasing rewrites every commit's SHA on the feature branch — existing
+tags (`task/N-done`, `task/N-review`) still point at the old,
+now-orphaned pre-rebase commits, not their equivalents in the rebased
+history. Git does not move tags for you here (unlike `--update-refs`,
+which only tracks branches). Immediately after any rebase, before
+doing anything else, re-point every tag currently in use:
+
+```bash
+git tag -l 'task/*'                        # every tag to check
+git log --oneline task/2-done..HEAD        # find each one's new commit — same message, new SHA
+git tag -f task/2-done <new-sha>           # repeat per tag
+```
+
+Commit messages survive a rebase even though SHAs don't, so matching
+old tag to new commit by message is the reliable way to do this by
+hand.
 
 **Landing a feature (tier 2 -> tier 1, human-run)**:
 
