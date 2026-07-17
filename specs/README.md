@@ -1,6 +1,10 @@
 # Specs
 
-One directory per feature: `specs/<feature-name>/`. Each contains:
+One directory per feature: `specs/<yyyymmdd>-<feature-name>/`, where
+the date is when the spec was first written (not when the feature
+ships) — this keeps directory listing order tracing the order
+features were taken up, independent of how long each one runs. Each
+directory contains:
 
 - **`spec.md`** — what the feature is and does. Written and agreed on
   with a human before any task work starts. The coder and reviewer
