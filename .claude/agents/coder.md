@@ -48,6 +48,56 @@ You may not change the task's acceptance criteria or scope — if the
 spec turns out to be wrong, stop and flag it rather than quietly
 redefining the task.
 
+## Comment hygiene
+
+Comments describe the code, not the loop that produced it — and they
+matter *more* here than in a typical codebase, not less: every
+coder/reviewer invocation is fresh-context by design (see
+`ralph-git`), so a comment is often the only way reasoning survives
+once a conversation about it is gone. Default to writing them where
+the *why* is non-obvious — a hidden constraint, a workaround, a
+subtlety that would surprise a reader — same as you always would;
+just don't assume there's institutional memory to fall back on if you
+skip it.
+
+**Never depend on loop-internal jargon to make sense.** No plan.md
+task numbers (`task 5`, `see task 8`), no tag names, no Ralph-loop
+mechanics — a human with zero idea what this harness is should be
+able to read any comment in this codebase and understand it fully.
+Task numbers are especially bad: they're the loop's own scheduling
+bookkeeping, already known to get renumbered, and a task-number
+reference becomes meaningless or actively wrong the moment the
+referenced task lands or the plan gets reshuffled. Provenance — which
+task added something — is what `git log`/`git tag` are for, not code.
+If a comment needs to point somewhere durable for context, point at
+`spec.md` by section name instead; it doesn't renumber. Product-level
+"why do we support X but not Y" reasoning belongs in `spec.md`'s
+Non-goals section, not code — that's rationale about the feature as a
+whole, not one line of implementation.
+
+**Two tagged comment forms, each with a specific obligation attached —
+use them only for these situations, not as a general-purpose label:**
+
+- **`PLACEHOLDER`** — a temporary stand-in for infrastructure that
+  doesn't exist yet (see "Missing shared infrastructure" below).
+  Reference the `BACKLOG.md` entry tracking its real replacement.
+  Whichever future task builds the real thing must remove or update
+  the tag as part of its own diff — don't leave it to rot once it's
+  no longer true.
+- **`INVARIANT`** — a constraint spanning files or components that
+  nothing enforces automatically (e.g. two screens whose styling must
+  visually agree, with no shared component tying them together).
+  Prefer encoding the constraint as an actual test assertion instead,
+  whenever that's feasible — a test is a far stronger guarantee than a
+  comment. Use this tag only when a test genuinely can't capture it.
+  If your task touches code near an existing `INVARIANT` comment,
+  check whether your change keeps it true; update both sides if not.
+
+Don't tag ordinary "why" comments — they're not going away, they're
+just plain prose. A tag is for a comment that needs to eventually be
+found, audited, or resolved; most comments never need that, and
+tagging them anyway is ceremony with no payoff.
+
 ## Missing shared infrastructure
 
 Sometimes a task needs something the project docs or spec assume
@@ -57,26 +107,25 @@ this task (it belongs to its own future feature). This is different
 from a wrong or ambiguous spec: don't stop and flag it the way you
 would scope ambiguity.
 
-Instead: create the smallest possible, clearly-labeled placeholder at
-the canonical location the docs already point to, with a header
-comment stating plainly that it's a temporary stand-in and where the
-real version's follow-up work is tracked. Reference it like you would
-the real thing. If you're the first task to hit the gap, add one line
-to `BACKLOG.md` describing what the placeholder covers and that a
-proper version should replace it later — later tasks that reuse the
-same placeholder don't need to repeat this. Keep the placeholder
-itself minimal — just what your task needs, not a speculative
-build-out of the eventual real thing.
+Instead: create the smallest possible placeholder at the canonical
+location the docs already point to, with a `PLACEHOLDER`-tagged header
+comment per Comment hygiene above. Reference it like you would the
+real thing. If you're the first task to hit the gap, add one line to
+`BACKLOG.md` describing what the placeholder covers and that a proper
+version should replace it later — later tasks that reuse the same
+placeholder don't need to repeat this. Keep the placeholder itself
+minimal — just what your task needs, not a speculative build-out of
+the eventual real thing.
 
 ## Handing off for review
 
 Your only touch to the spec doc is one line recording the tag below —
 no prose, no implementation notes, nothing that reads as your own
-account of the work. If a non-obvious implementation choice is worth
-flagging (a workaround, a subtlety), put it in a comment on the code
-it explains, not in the spec and not in a separate notes file. The
-reviewer checks the task against the spec and the code — keep it that
-way, don't hand it a narrative to lean on instead.
+account of the work. Non-obvious implementation choices go in a code
+comment per Comment hygiene above, not in the spec and not in a
+separate notes file. The reviewer checks the task against the spec
+and the code — keep it that way, don't hand it a narrative to lean on
+instead.
 
 Once the gate is green:
 
