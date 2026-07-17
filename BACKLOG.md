@@ -32,6 +32,16 @@ are now in scope in `specs/exercise-calibration/spec.md` rather than
 backlogged — nothing left here for those. "Sort by muscle groups hit"
 was considered and deliberately dropped as a non-goal in that spec.
 
+- **Human-readable muscle group names.** `data/exercises.json`'s
+  `primaryMuscles`/`secondaryMuscles` values are raw identifiers
+  (`upper_back`, `quads`, `lats`, etc.) rendered as-is by
+  `ExerciseCard` and (once task 9 lands) the muscle-group filter —
+  no display-name mapping exists. Needs a `muscleGroupId ->` display
+  label lookup (e.g. `upper_back` -> "Upper Back", `quads` ->
+  "Quadriceps", `lats` -> "Lats" or "Latissimus Dorsi") used
+  everywhere a muscle group is shown or listed as a filter option,
+  rather than each call site formatting the raw string itself.
+
 ## My Gym (new section)
 
 - New section for the user to record what equipment they have
