@@ -48,6 +48,26 @@ You may not change the task's acceptance criteria or scope — if the
 spec turns out to be wrong, stop and flag it rather than quietly
 redefining the task.
 
+## Missing shared infrastructure
+
+Sometimes a task needs something the project docs or spec assume
+exists — a theme system, a shared client, a utility module — but it
+hasn't been built yet, and building the real thing is out of scope for
+this task (it belongs to its own future feature). This is different
+from a wrong or ambiguous spec: don't stop and flag it the way you
+would scope ambiguity.
+
+Instead: create the smallest possible, clearly-labeled placeholder at
+the canonical location the docs already point to, with a header
+comment stating plainly that it's a temporary stand-in and where the
+real version's follow-up work is tracked. Reference it like you would
+the real thing. If you're the first task to hit the gap, add one line
+to `BACKLOG.md` describing what the placeholder covers and that a
+proper version should replace it later — later tasks that reuse the
+same placeholder don't need to repeat this. Keep the placeholder
+itself minimal — just what your task needs, not a speculative
+build-out of the eventual real thing.
+
 ## Handing off for review
 
 Your only touch to the spec doc is one line recording the tag below —
