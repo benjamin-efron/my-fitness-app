@@ -63,4 +63,4 @@ Browse past workout sessions. Show basic stats and graphs of progress over time 
 - iOS only — do not add Android-specific code or workarounds
 - Use Expo Go for development; no native build needed yet
 - Avoid over-abstracting — keep data flow simple and co-located until patterns emerge naturally
-- Use the existing theme system (`src/constants/theme.ts`) for colors and typography
+- Use `src/constants/theme.ts` for colors and typography — currently a minimal placeholder stub, not a finished design system; see the file's header comment and `BACKLOG.md` for the real theming work
