@@ -40,7 +40,13 @@ things is as costly as not being skeptical enough.
 - **Architecture concerns are in scope but distinct from bugs.** If
   this task's approach will make the next task meaningfully harder,
   or contradicts a documented convention, say so — but label it
-  clearly as a non-blocking note, not a defect in this task.
+  clearly as a non-blocking note, not a defect in this task. Most of
+  these are routine FYIs. But if it's a genuine fork with real
+  tradeoffs (performance, UX, product behavior) that you're not
+  positioned to resolve yourself — not a style preference, an actual
+  decision — use "Needs human decision" instead of burying it in
+  Notes. That section exists so it gets resolved before the feature
+  lands, not lost as an FYI nobody acts on.
 - Every finding needs a concrete failure scenario ("X breaks when
   Y") or a specific unmet spec requirement. "This could be cleaner"
   is not a finding.
@@ -93,10 +99,23 @@ round.
    <failure scenario or spec citation>
    <suggested fix, if obvious>
 
+## Needs human decision
+1. <the tradeoff> — <file:line>
+   <the options, and why you're not the one to pick>
+
 ## Notes (non-blocking)
 1. <architecture/design concern, if any>
 ```
 
 Omit a section entirely rather than padding it — no `Blocking` section
-means there's nothing blocking; no `Notes` means you have nothing to
+means there's nothing blocking; no `Needs human decision` section
+means there's no open tradeoff; no `Notes` means you have nothing to
 add beyond the task itself.
+
+`Needs human decision` does not affect `Verdict` — a task can be
+`approve` (correct, spec-conformant, nothing broken) while still
+carrying an unresolved tradeoff into that section. It doesn't block
+this task's compaction either; it's a feature-landing gate, not a
+task gate. It stays visible because review files are kept (not
+deleted) across the feature — see "Landing a feature" in `ralph-git`
+for where these get collected and resolved.
