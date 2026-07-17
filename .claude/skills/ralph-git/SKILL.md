@@ -158,7 +158,19 @@ Commit messages survive a rebase even though SHAs don't, so matching
 old tag to new commit by message is the reliable way to do this by
 hand.
 
-**Landing a feature (tier 2 -> tier 1, human-run)**:
+**Landing a feature (tier 2 -> tier 1, human-run)**: before landing,
+resolve every open tradeoff the reviewer flagged for human judgment
+rather than deciding itself (see `reviewer.md`'s "Needs human
+decision" section) — this is exactly what keeping review files
+around instead of deleting them was for:
+
+```bash
+grep -l '## Needs human decision' .claude/review/*.md
+```
+
+A landed feature shouldn't carry forward a decision nobody actually
+made. Once every flagged file is resolved (edit the code, or edit the
+review file to record the decision taken):
 
 ```bash
 git checkout feature/<feature-name>
