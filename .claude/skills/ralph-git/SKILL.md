@@ -126,13 +126,13 @@ points at a tag that's about to be deleted:
 ```
 
 Check `git status` for an uncommitted
-`specs/<feature>/architecture-log.md` too — the reviewer appends to it
-via the `architecture-log` skill's script but never commits (see
+`specs/<feature>/engineering-log.md` too — the reviewer appends to it
+via the `engineering-log` skill's script but never commits (see
 `reviewer.md`'s Boundaries), so its entries for this task are sitting
 uncommitted in the working tree until this step folds them in.
 
 ```bash
-git add specs/<feature>/plan.md specs/<feature>/architecture-log.md
+git add specs/<feature>/plan.md specs/<feature>/engineering-log.md
 git commit -m "task: <task-id> — <summary>  (spec: specs/<feature>/plan.md#<task-id>)"
 git tag task/3-done
 git tag -d task/3-review         # superseded — keeping it around only invites it going stale

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Appends one entry to specs/<feature>/architecture-log.md. Never reads
+# Appends one entry to specs/<feature>/engineering-log.md. Never reads
 # or rewrites existing entries — see SKILL.md for why that matters.
 set -euo pipefail
 
@@ -41,12 +41,12 @@ if [[ "$role" != "coder" && "$role" != "reviewer" ]]; then
 fi
 
 repo_root="$(git rev-parse --show-toplevel)"
-log_file="$repo_root/specs/$feature/architecture-log.md"
+log_file="$repo_root/specs/$feature/engineering-log.md"
 
 if [[ ! -f "$log_file" ]]; then
   mkdir -p "$(dirname "$log_file")"
   cat > "$log_file" <<EOF
-# Architecture log: $feature
+# Engineering log: $feature
 
 Cumulative, append-only record of technical decisions, conventions,
 debt, and judgment calls surfaced while building this feature — not a

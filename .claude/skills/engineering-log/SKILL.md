@@ -1,9 +1,9 @@
 ---
-name: architecture-log
-description: Append a structured entry to a feature's cumulative architecture-decision log at specs/<feature>/architecture-log.md — the durable, human-facing record of technical decisions, conventions, debt, and judgment calls that a fleet of narrow-context coder/reviewer agents surfaces but no single agent holds a persistent view of. Use after finishing coder or reviewer work on a task, to append one or more entries via the bundled script. Never use it to read or edit existing entries.
+name: engineering-log
+description: Append a structured entry to a feature's cumulative engineering log at specs/<feature>/engineering-log.md — the durable, human-facing record of implementation decisions, conventions, debt, and judgment calls that a fleet of narrow-context coder/reviewer agents surfaces but no single agent holds a persistent view of. Use after finishing coder or reviewer work on a task, to append one or more entries via the bundled script. Never use it to read or edit existing entries.
 ---
 
-# Architecture Log
+# Engineering Log
 
 A system of small, focused, fresh-context agents is powerful exactly
 because no single agent carries the whole picture of the app — but
@@ -45,7 +45,7 @@ reading the code:
 ## How to append
 
 ```bash
-.claude/skills/architecture-log/append.sh \
+.claude/skills/engineering-log/append.sh \
   --feature <specs/ directory name, e.g. 20260705-exercise-calibration> \
   --task <task number> \
   --role coder|reviewer \
@@ -54,7 +54,7 @@ reading the code:
   [--detail "<longer note, only if the one-liner isn't enough>"]
 ```
 
-Creates `specs/<feature>/architecture-log.md` on first use, with a
+Creates `specs/<feature>/engineering-log.md` on first use, with a
 header explaining what the file is. Appends only — never rewrites or
 removes an existing entry, regardless of what else is going on in the
 task.
