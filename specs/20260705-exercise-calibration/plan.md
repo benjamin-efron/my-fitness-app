@@ -26,11 +26,11 @@ and its type/loader — no UI.
 **Depends on:** the seed JSON being supplied directly (per `spec.md`)
 — don't start until it's been provided.
 
-**Handoff:** _(coder fills in: review tag)_
+**Handoff:** `task/1-done`
 
 ## Task 2: Muscle group & equipment option lists
 
-Pure utility functions the list screen's filters (tasks 6-7) will
+Pure utility functions the list screen's filters (tasks 9-10) will
 both need: derive the distinct set of filterable values straight from
 the loaded exercise data, not a hand-maintained list.
 
@@ -45,7 +45,7 @@ the loaded exercise data, not a hand-maintained list.
   function, dedup across entries for the equipment function, and an
   empty list in returns an empty list out for both.
 
-**Handoff:** _(coder fills in: review tag)_
+**Handoff:** `task/2-done`
 
 ## Task 3: Calibration storage layer
 
@@ -68,14 +68,14 @@ and writes, per the key scheme and `TimeTaken` union in `spec.md`
   returns `null`; a second save overwrites the first (re-calibration
   case from `spec.md`).
 
-**Handoff:** _(coder fills in: review tag)_
+**Handoff:** `task/3-done`
 
 ## Task 4: Exercise list — base render and default sort
 
 The `/calibrate` screen's core: every exercise from task 1's loader,
 rendered as a card per `spec.md`'s list-view layout and the shared
 "Muscle group display" styling convention, sorted by the default rule.
-No search/filters yet (tasks 5-7).
+No search/filters yet (tasks 7, 9-10).
 
 **Acceptance criteria:**
 - Every exercise renders as a card showing name, its full primary
@@ -88,16 +88,66 @@ No search/filters yet (tasks 5-7).
   most first.
 - Tapping a card navigates to the calibration route for that
   exercise's id (the route can be a minimal placeholder screen at
-  this point — task 8 builds it out).
+  this point — task 11 builds it out).
 - Component test (RNTL) covers: all exercises render; a higher
   muscle-count exercise appears before a lower one; a pre-seeded
   calibrated exercise shows the indicator and an unseeded one doesn't.
 
-**Handoff:** _(coder fills in: review tag)_
+**Handoff:** `task/4-done`
 
-## Task 5: Exercise list — search and hide-calibrated toggle
+## Task 5: Exercise list — extract render into a component
 
-Adds the two simplest list controls on top of task 4's render.
+Pure refactor, no behavior change: separates "what to render" (owned
+by the `/calibrate` screen — data, sort, calibration status) from "how
+to render it," ahead of task 6's virtualization swap. Inserted after
+task 4's review flagged the list's rendering approach as a "Needs
+human decision" item (see `.claude/review/task-4.md`) rather than
+deferred to feature-landing, since tasks 7, 9, and 10 build directly on top of
+this render and the cost of leaving it as-is compounds with each one.
+
+**Acceptance criteria:**
+- Exercise-card rendering, currently inline in
+  `src/app/calibrate/index.tsx`, moves into a new
+  `src/components/ExerciseList.tsx`, taking the already-sorted
+  exercise list, the calibrated-id set, and an exercise-press handler
+  as props.
+- `src/app/calibrate/index.tsx` keeps owning data loading, sorting,
+  and calibration-status resolution; it renders `<ExerciseList ... />`
+  instead of the inline `ScrollView`/`.map()`.
+- No behavior change: task 4's existing coverage (all exercises
+  render, default sort order, calibrated badge, tap-to-navigate)
+  continues to pass, moved/adapted to the new component boundary only
+  where the refactor requires it — not rewritten to cover new
+  behavior.
+
+**Handoff:** `task/5-done`
+
+## Task 6: Exercise list — virtualize with FlatList
+
+Swaps task 5's `ExerciseList` internals from `ScrollView`/`.map()` to
+`FlatList`. Per the reviewer's task 4 finding: at the real ~856-entry
+exercise database, an unvirtualized render is a genuine on-device
+performance/memory concern, not a hypothetical one — this task
+resolves it directly rather than carrying it forward.
+
+**Acceptance criteria:**
+- `ExerciseList` renders via `FlatList` — `keyExtractor` by exercise
+  id, `renderItem` wired to the existing `ExerciseCard`.
+- All behavioral guarantees from tasks 4-5 still hold: every exercise
+  reachable by scroll, default sort order preserved, calibrated badge,
+  tap-to-navigate — verified with test setup that forces a full render
+  (e.g. sized `initialNumToRender`/window settings, or an equivalent
+  RNTL technique) rather than asserting only against whatever renders
+  by default under virtualization.
+- No change to `src/app/calibrate/index.tsx`'s data/sort/calibration-
+  status logic — scoped to `ExerciseList`'s internals only.
+
+**Handoff:** `task/6-done`
+
+## Task 7: Exercise list — search and hide-calibrated toggle
+
+Adds the two simplest list controls on top of the exercise list render
+(tasks 4-6).
 
 **Acceptance criteria:**
 - A search input filters the rendered cards to exercises whose name
@@ -109,9 +159,27 @@ Adds the two simplest list controls on top of task 4's render.
   list to matching names only; enabling the hide-calibrated toggle
   removes a pre-seeded calibrated exercise from the rendered list.
 
-**Handoff:** _(coder fills in: review tag)_
+**Handoff:** `task/7-done`
 
-## Task 6: Exercise list — muscle group filter and target sort
+## Task 8: Home screen — link to Exercise Calibration
+
+Wires the app's actual entry point (`src/app/index.tsx`, currently the
+placeholder "Hello, world!" screen) to the feature that's been built
+so far. Small and independent of the filter/calibration-flow tasks
+that follow — no dependency beyond the `/calibrate` route existing
+(task 4). Surfaced during a manual Expo Go validation pass: nothing
+built so far was reachable from the app's actual home screen.
+
+**Acceptance criteria:**
+- `src/app/index.tsx` renders a link/button to `/calibrate` (e.g.
+  `expo-router`'s `Link`), replacing the placeholder "Hello, world!"
+  content.
+- Component test (RNTL) covers: the link/button is present and
+  navigates to `/calibrate` when pressed.
+
+**Handoff:** `task/8-done`
+
+## Task 9: Exercise list — muscle group filter and target sort
 
 Adds the muscle-group filter from `spec.md`, including its
 single-target two-tier sort behavior.
@@ -136,9 +204,9 @@ single-target two-tier sort behavior.
   one; flipping the toggle reverses that order; selecting a second
   group reverts to count-based ordering.
 
-**Handoff:** _(coder fills in: review tag)_
+**Handoff:** `task/9-done`
 
-## Task 7: Exercise list — equipment filter
+## Task 10: Exercise list — equipment filter
 
 Adds the equipment filter from `spec.md`. Transient/derived only — no
 persisted equipment inventory (that's out of scope per the spec's
@@ -149,20 +217,20 @@ non-goals).
 - Selecting one or more equipment types narrows the list to exercises
   whose `equipment` includes at least one selected type.
 - Combines with the muscle-group filter and search/hide-calibrated
-  controls from tasks 5-6 (all active filters narrow the same list
+  controls from tasks 7 and 9 (all active filters narrow the same list
   together, not mutually exclusive).
 - Component test (RNTL) covers: filtering to one equipment type
   excludes exercises that don't require it; an equipment filter and a
   muscle-group filter applied together narrow to the intersection.
 
-**Handoff:** _(coder fills in: review tag)_
+**Handoff:** `task/10-done`
 
-## Task 8: Calibration flow — base form
+## Task 11: Calibration flow — base form
 
 The drill-in screen from `spec.md`: header plus a form covering reps,
 weight, effort, notes, and time entered as a precise number (typed
-directly — the stopwatch arrives in task 9, the approximate bucket in
-task 10). Wires up the placeholder route from task 4.
+directly — the stopwatch arrives in task 12, the approximate bucket in
+task 13). Wires up the placeholder route from task 4.
 
 **Acceptance criteria:**
 - Header shows the exercise's name, its named primary and secondary
@@ -180,16 +248,16 @@ task 10). Wires up the placeholder route from task 4.
   a `CalibrationResult` (with `time.kind === 'precise'`) retrievable
   via `getCalibration`.
 
-**Handoff:** _(coder fills in: review tag)_
+**Handoff:** `task/11-done`
 
-## Task 9: Calibration flow — in-app stopwatch
+## Task 12: Calibration flow — in-app stopwatch
 
 Adds the stopwatch as an alternate way to fill in the precise time
-field from task 8, per `spec.md`.
+field from task 11, per `spec.md`.
 
 **Acceptance criteria:**
 - A start/stop control runs an elapsed-time display while active.
-- Stopping populates the time field from task 8 with the elapsed
+- Stopping populates the time field from task 11 with the elapsed
   seconds (rounded to a whole second is fine — no frame-level
   precision required).
 - The time field remains editable after stopping, so a user can
@@ -198,16 +266,16 @@ field from task 8, per `spec.md`.
   after a simulated interval populates the time field with a matching
   value; editing the field afterward overrides that value.
 
-**Handoff:** _(coder fills in: review tag)_
+**Handoff:** `task/12-done`
 
-## Task 10: Calibration flow — approximate time
+## Task 13: Calibration flow — approximate time
 
 Adds the short/moderate/long bucket as an alternative to the precise
-time entry from tasks 8-9, per the `TimeTaken` union in `spec.md`.
+time entry from tasks 11-12, per the `TimeTaken` union in `spec.md`.
 
 **Acceptance criteria:**
 - A mode control lets the user switch the time field between
-  "precise" (task 8/9's numeric entry + stopwatch) and "approximate"
+  "precise" (task 11/12's numeric entry + stopwatch) and "approximate"
   (a short/moderate/long choice).
 - In approximate mode, Save's time requirement is satisfied by
   picking one of the three buckets rather than entering a number.
@@ -218,9 +286,9 @@ time entry from tasks 8-9, per the `TimeTaken` union in `spec.md`.
   persisted `CalibrationResult` has `time.kind === 'approximate'` with
   the selected bucket.
 
-**Handoff:** _(coder fills in: review tag)_
+**Handoff:** `task/13-done`
 
-## Task 11: Re-calibration pre-fill
+## Task 14: Re-calibration pre-fill
 
 Opening the calibration flow for an exercise that already has a
 stored result pre-fills the form with those values instead of
@@ -239,4 +307,4 @@ starting blank, per `spec.md`.
   id, assert the form shows the seeded values; repeat for a
   pre-seeded approximate-time result.
 
-**Handoff:** _(coder fills in: review tag)_
+**Handoff:** `task/14-done`

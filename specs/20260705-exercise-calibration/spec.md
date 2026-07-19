@@ -37,6 +37,14 @@ two-tier distinction only (primary vs. secondary), not a color per
 individual muscle group — a distinct color per muscle name would be
 more visual noise than signal at this list density.
 
+### 0. Home screen entry point
+
+The app's home screen has a single link/button to the Exercise
+Calibration list (`/calibrate`). No other home-screen content yet —
+the other app sections (Program Builder, Workout Tracker, History
+Viewer) don't exist, so this isn't a navigation menu, just an entry
+point to this feature.
+
 ### 1. Exercise list (`/calibrate`)
 
 - Shows every exercise in the exercise database (`data/exercises.json`)
