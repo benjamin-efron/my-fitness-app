@@ -37,13 +37,18 @@ Read each finding and sort it into exactly one of:
   expected behavior. Proceeds to Step 3.
 - **Design change** — a UX/interaction request that isn't a defect
   against any spec'd behavior (nothing documented promised the old
-  behavior was right). Append it to `BACKLOG.md` directly yourself —
-  no subagent needed — under whatever section fits, and
+  behavior was right). Append it to this feature's `specs/<feature>/
+  backlog.md` directly yourself — no subagent needed — creating the
+  file if it doesn't exist yet, under whatever section fits, and
   cross-reference it with a one-line Status update in
-  `qa-findings.md` (`**Status:** Design change — see BACKLOG.md's
-  "<item>".`).
-- **Already tracked** — duplicates an existing `BACKLOG.md` item.
-  Cross-reference it the same way; don't create a new entry.
+  `qa-findings.md` (`**Status:** Design change — see backlog.md's
+  "<item>".`). Only use the repo-root `BACKLOG.md` instead if the item
+  needs to land on `main` independently of this feature — an
+  out-of-band bug unrelated to what's being built, not a polish item
+  on the feature itself (`specs/README.md`).
+- **Already tracked** — duplicates an existing item in this feature's
+  `backlog.md` (or the repo-root `BACKLOG.md`, for an out-of-band
+  item). Cross-reference it the same way; don't create a new entry.
 
 **Open question, not yet resolved:** some design changes plausibly
 need to land *before* the feature ships rather than always deferring

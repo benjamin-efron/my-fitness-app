@@ -17,7 +17,7 @@ down, in the skills this one references.
 | Role | Does |
 |---|---|
 | Human (you) | Agrees `spec.md` before task work starts; does manual QA testing; resolves anything flagged "Needs human decision"; runs the final `checkout main && merge --ff-only` |
-| Driver (orchestrating session) | Everything else that isn't a subagent's job: creates the worktree, picks the next task/bug, spawns `coder`/`reviewer`/`diagnosis`, compacts tier 3 -> tier 2, triages QA findings, keeps the branch current with `main`, prepares the landing squash |
+| Driver (orchestrating session) | Runs from inside the feature's worktree for the feature's duration (`ralph-git`'s "Starting a feature's worktree"), not the main checkout. Everything else that isn't a subagent's job: creates the worktree, picks the next task/bug, spawns `coder`/`reviewer`/`diagnosis`, checks for and compacts stray chore commits before each task, compacts tier 3 -> tier 2, triages QA findings, keeps the branch current with `main`, prepares the landing squash |
 | `coder` subagent | Implements exactly one task or one bug fix, red-before-green, tags for review |
 | `reviewer` subagent | Reviews exactly one task's or bug fix's diff, verdict: approve / request changes / (separately) needs human decision |
 | `diagnosis` subagent | Investigates exactly one QA-triaged bug, writes the eight-section diagnosis doc, never fixes anything |
@@ -39,27 +39,37 @@ work resumes (`specs/README.md`, "Changing a spec mid-feature").
 
 For each `plan.md` task, in order:
 
-1. Driver spawns `coder` with the task.
-2. Coder implements it, tags `task/N-review` (`ralph-git`).
-3. Driver spawns `reviewer` against that tag.
-4. **Approve** -> driver compacts tier 3 -> tier 2 (`ralph-git`:
+1. **Before spawning `coder`:** pull `main` and check the gap since
+   the previous boundary tag for any feature-local chore commits,
+   compacting them into their own `chore/<slug>-done` tag first if
+   found (`ralph-git`'s "Chore commits" and "Keeping the feature
+   branch current with `main`"). Run both checks every task, not just
+   when something's noticed.
+2. Driver spawns `coder` with the task.
+3. Coder implements it, tags `task/N-review` (`ralph-git`).
+4. Driver spawns `reviewer` against that tag.
+5. **Approve** -> driver compacts tier 3 -> tier 2 (`ralph-git`:
    `reset --soft`, fold `engineering-log.md`, tag `task/N-done`).
-   **Request changes** -> back to step 1, same coder invocation
+   **Request changes** -> back to step 2, same coder invocation
    continues, same review tag moves forward, not a new one.
    **Needs human decision** (can accompany either verdict) -> doesn't
    block this task's compaction; carries forward as an open item
    resolved at Stage 4's landing gate, not here (`reviewer.md`).
-5. Repeat until every `plan.md` task is `task/N-done`. The feature is
+6. Repeat until every `plan.md` task is `task/N-done`. The feature is
    now **code-complete** — proceed to Stage 3.
 
 **Off-ramps:**
 - **Missing shared infrastructure** a task assumes exists — the coder
   builds the smallest placeholder, tags it `PLACEHOLDER`, notes it in
-  `BACKLOG.md`, and continues; this doesn't stop the loop (`coder.md`).
-- **A docs commit lands on `main` mid-feature** (via the escape hatch,
-  proactively or discovered) — before further task work, rebase the
-  feature branch onto `main` and re-point every tag (`ralph-git`,
-  "Keeping the feature branch current with `main`").
+  this feature's `backlog.md` (or the repo-root `BACKLOG.md` if it's
+  not feature-specific — `specs/README.md`), and continues; this
+  doesn't stop the loop (`coder.md`).
+- **A docs commit lands on `main` mid-feature** (via the escape hatch)
+  — picked up automatically by step 1's per-task pull check above; no
+  separate action needed unless it's noticed between checkpoints, in
+  which case rebase and re-point tags immediately rather than waiting
+  for the next task boundary (`ralph-git`, "Keeping the feature branch
+  current with `main`").
 - **An out-of-band bug found by manual validation mid-loop**, outside
   any task's acceptance criteria — no settled process yet; see
   `BACKLOG.md`'s "No strategy for 'out-of-band' bugs" item. Distinct
@@ -73,8 +83,10 @@ Full detail lives in `qa-loop`; the shape of it:
 1. Human does manual/ad-hoc testing, reports findings.
 2. Driver captures them into `specs/<feature>/qa-findings.md`.
 3. Driver triages each into **bug**, **design change**, or **already
-   tracked**. Design changes and duplicates get cross-referenced into
-   `BACKLOG.md` directly — no subagent needed.
+   tracked**. Design changes and duplicates get cross-referenced
+   directly into this feature's `backlog.md` — no subagent needed —
+   or the repo-root `BACKLOG.md` if the item needs to land on `main`
+   independently of this feature (`specs/README.md`).
 4. For every finding triaged as a bug: driver spawns `diagnosis`, one
    at a time, sequentially — not in parallel — until every bug from
    this pass has a diagnosis doc. Only once all of them are diagnosed
@@ -113,7 +125,10 @@ before landing ("A whole-spec conformance pass before landing" item),
 and a generated human testing plan distinct from ad hoc QA ("A human
 testing plan, generated before landing" item).
 
-Once the gate is clear, run `ralph-git`'s squash-and-merge sequence.
+Once the gate is clear, run `ralph-git`'s squash-and-merge sequence,
+ending with the `main-landing/<spec-dir-name>` tag. Once that tag
+exists, this feature's `specs/<feature>/` directory is sealed —
+`specs/README.md`'s "Once a feature lands."
 
 ## Stage 5 — Cleanup
 

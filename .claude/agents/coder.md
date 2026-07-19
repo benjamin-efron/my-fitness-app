@@ -126,6 +126,18 @@ placeholder don't need to repeat this. Keep the placeholder itself
 minimal — just what your task needs, not a speculative build-out of
 the eventual real thing.
 
+## Mid-task chores
+
+Different from missing infrastructure: sometimes you find you need an
+unrelated fix — not a placeholder, an actual small change outside this
+task's own scope — to keep going. Don't fold it into your task-scratch
+commits and don't stop to flag it like a scope ambiguity. Commit it as
+its own isolated commit, touching none of the same lines as your task
+work, with a distinct message: `chore(scratch): <what, why>` instead
+of your usual `wip(task-N): ...`. Then keep going with the task on top.
+This keeps it separable later — see `ralph-git`'s "Chore commits" for
+what the driver does with it at compaction.
+
 ## Engineering log
 
 Once your implementation is done and the gate is green — before you

@@ -15,6 +15,14 @@ directory contains:
   `task/N-review` tags in `.claude/skills/ralph-git/SKILL.md` refer to
   the task numbering here. Each task section keeps a single line for
   the coder to fill in on handoff (the review tag) — nothing else.
+- **`backlog.md`** — this feature's own backlog: ideas, deferred
+  polish, and out-of-scope findings discovered while building it, that
+  don't need to land on `main` independently of it. The repo-root
+  `BACKLOG.md` is reserved for items that do need to land on `main` on
+  their own schedule (process/harness improvements, out-of-band bugs
+  unrelated to this feature) — see `ralph-git`'s "Chore commits"
+  section for the same distinction applied to code changes, not just
+  backlog entries. Created on demand, not up front.
 
 ## What `spec.md` must contain
 
@@ -49,3 +57,16 @@ and flags it (per `.claude/agents/coder.md`) rather than quietly
 redefining scope — the spec gets updated deliberately, as its own
 agent-docs commit (`ralph-git`'s escape hatch), before task work
 resumes.
+
+## Once a feature lands
+
+A feature's `specs/<yyyymmdd>-<feature-name>/` directory is sealed the
+moment its `main-landing/<spec-dir-name>` tag exists on `main`
+(`ralph-git`'s landing procedure) — never edited again after that,
+including pure reorganization with no content change. If a landed
+feature needs revisiting later, write a new spec directory that
+references the old one; don't go back and change it, even to fix a
+stale cross-reference or improve its formatting. This keeps every
+landed spec a faithful, unaltered record of what was actually agreed
+and built at the time, rather than something that quietly drifts as
+later sessions touch it for unrelated reasons.

@@ -1,6 +1,6 @@
 ---
 name: ralph-git
-description: Git branching, commit, and worktree mechanics for the Ralph loop — the three-tier commit model (main / feature / task-scratch), the `task/N` and `bugfix/<slug>` tag schemes a fresh-context agent uses to reconstruct progress from git alone, the review-handoff tag, rebase-safe tag repointing, and how docs commits (`CLAUDE.md`, specs, `.claude/`, `BACKLOG.md`) get kept out of disposable scratch history. Says *how* to run each git operation; see `ralph-loop` for *when* each one happens and who decides. Use whenever a Ralph-loop session needs to run a specific git/worktree command correctly.
+description: Git branching, commit, and worktree mechanics for the Ralph loop — the three-tier commit model (main / feature / task-scratch), the `task/N`, `bugfix/<slug>`, and `chore/<slug>` tag schemes a fresh-context agent uses to reconstruct progress from git alone, the review-handoff tag, rebase-safe tag repointing, the `main-landing/<spec-dir-name>` landing tag, and how docs commits (`CLAUDE.md`, specs, `.claude/`, `BACKLOG.md`) get kept out of disposable scratch history — including that a landed feature's own `specs/<feature>/` directory is sealed and never edited again. Says *how* to run each git operation; see `ralph-loop` for *when* each one happens and who decides. Use whenever a Ralph-loop session needs to run a specific git/worktree command correctly.
 ---
 
 # Ralph Git
@@ -14,26 +14,29 @@ progress, and where to pick up. Rebase freely on feature/task
 branches; never rebase `main` (fast-forward only) or any branch
 someone/something else might also be committing to.
 
-## Tags: `task/N` and `bugfix/<slug>`
+## Tags: `task/N`, `bugfix/<slug>`, and `chore/<slug>`
 
 Every unit of work compacted through tier 3 -> tier 2 (see "Why three
-tiers" below) is tagged one of two ways, depending on where it came
+tiers" below) is tagged one of three ways, depending on where it came
 from:
 
 - **`task/N`** — a `plan.md` task, numbered per that doc.
 - **`bugfix/<slug>`** — a fix for one QA-loop diagnosis
   (`specs/<feature>/diagnoses/<slug>.md`), slugged the same as that
   diagnosis's filename.
+- **`chore/<slug>`** — a feature-local cross-task hygiene change that
+  isn't any single task's or bug fix's job. See "Chore commits" below
+  — it's compacted the same way but doesn't get a `-review` tag by
+  default.
 
 Everything below — scratch commits, the `-review` tag, compaction, the
 plan/diagnosis doc's one-line handoff pointer — works identically for
-either; substitute `bugfix/<slug>` wherever `task/N` appears in an
-example. The two namespaces never collide (`task/` vs `bugfix/`
-prefix), and boundary tags chain across both kinds in whatever order
-the work actually happened — the "previous boundary tag" for a
-compaction is simply whichever tag (`task/N-done` or
-`bugfix/<slug>-done`) was set most recently, not necessarily the
-highest task number.
+`task/N` and `bugfix/<slug>`; substitute one for the other wherever an
+example uses either. The namespaces never collide (`task/` vs
+`bugfix/` vs `chore/` prefix), and boundary tags chain across all three
+in whatever order the work actually happened — the "previous boundary
+tag" for a compaction is simply whichever tag was set most recently,
+not necessarily the highest task number.
 
 ## Commands & flows
 
@@ -66,16 +69,16 @@ session into it:
 git tag task/0-done              # compaction boundary for task 1
 ```
 
-Then return the orchestrating session to its normal directory — it
-doesn't write code itself, subagents do:
-
-```
-ExitWorktree(action: "keep")
-```
-
-Note the worktree's absolute path (from `EnterWorktree`'s result or
-`git worktree list`) — every subagent invocation for this feature
-needs it, see below.
+The driver stays here — the orchestrating session runs from inside the
+feature's worktree for the rest of the feature's life, not the main
+checkout. (This used to hand back to the main checkout via
+`ExitWorktree` right after creation; don't do that — it was a real
+source of confusion, running app-launch commands against the wrong
+checkout without noticing.) Note the worktree's absolute path (from
+`EnterWorktree`'s result or `git worktree list`) regardless — every
+subagent invocation still needs it explicitly, since a subagent's
+working directory is pinned independently at launch and does not
+inherit the driver's, see below.
 
 **Rooting subagents in the worktree.** The orchestrating session
 being inside (or having been inside) the worktree does **not** mean a
@@ -170,6 +173,68 @@ git tag bugfix/<slug>-done
 git tag -d bugfix/<slug>-review
 ```
 
+## Chore commits
+
+Not every commit maps to a `plan.md` task or a QA-loop bug fix —
+cross-task hygiene (a comment sweep across already-landed tasks, a
+`plan.md` renumbering, a small refactor spanning several tasks' files)
+genuinely belongs to the feature but isn't any single unit of work's
+job. Folding it into whichever task happens to compact next is the
+failure mode to avoid: it makes that task's tier-2 commit
+un-discardable, since throwing away the task also throws away the
+chore buried inside it — directly against the point of keeping
+task-scratch history cheap to discard (see "Why three tiers" below).
+
+First decide which kind of chore this is — the same split as
+`specs/README.md`'s feature-local `backlog.md` vs. the repo-root
+`BACKLOG.md`:
+
+- **Feature-local** — only makes sense because of work this feature
+  did (a renumbering, a sweep over files this feature touched). Tag it
+  `chore/<slug>` on the feature branch, per the boundary-time check
+  below.
+- **Out-of-band** — would still make sense if this feature didn't
+  exist (an unrelated bug found by manual testing, an infra fix like a
+  bundler config change). Skip the chore tag entirely — treat it like
+  a docs commit via the agent-docs escape hatch below: commit it
+  standalone, land it on `main` on its own schedule, then rebase the
+  feature branch to pick it up.
+
+**Boundary-time check.** Before spawning the next task's or bug fix's
+`coder`, check whether anything sits between the previous boundary tag
+and now that isn't a docs commit (already covered by the escape hatch
+below): `git log --oneline <prev-boundary-tag>..HEAD`. If a
+feature-local chore is there, compact it the same way as a task,
+before the next unit's own scratch history starts:
+
+```bash
+git reset --soft task/8-done          # or whichever tag is current
+git commit -m "chore: <summary>"
+git tag chore/<slug>-done
+```
+
+No `-review` tag or reviewer pass by default — these are driver-
+authored, and usually small enough to trust directly; run one through
+the reviewer anyway if not confident about it. The next unit of work's
+scratch commits build on top of `chore/<slug>-done` as their new
+previous-boundary tag.
+
+**Mid-task discovery.** If a coder finds it needs an unrelated fix to
+keep going on its own task, it commits that fix as its own commit —
+isolated from its task-scratch commits, not touching the same lines —
+with a distinct, greppable message: `chore(scratch): <what, why>`
+(instead of its usual `wip(task-N): ...`). It keeps working on top and
+does not stop to flag this the way it would a scope ambiguity.
+
+This is as far as the mechanism goes for now — there's no automated
+extraction of a `chore(scratch):` commit that landed in the middle of
+a task's own scratch history. If that task is later thrown away in its
+entirety, the chore goes with it; recover it by hand at that point
+(write it up as a backlog item before discarding, reapply once the
+task restarts) rather than by rebase surgery. Revisit building real
+extraction tooling only once this has actually happened and it's clear
+what shape is actually needed.
+
 **Keeping the feature branch current with `main`**:
 
 ```bash
@@ -199,20 +264,29 @@ hand.
 ```bash
 git checkout feature/<feature-name>
 git rebase main
-git reset --soft main              # collapse every task/bugfix commit into one staged changeset
+git reset --soft main              # collapse every task/bugfix/chore commit into one staged changeset
 git commit -m "feat: <feature summary>"
 git checkout main
 git merge --ff-only feature/<feature-name>
+git tag main-landing/<spec-dir-name>   # e.g. main-landing/20260705-exercise-calibration
 ```
 
 The `checkout main && merge --ff-only` step is run by a human, not the
-agent — same boundary as "never push to main unattended."
+agent — same boundary as "never push to main unattended." The landing
+tag reuses the feature's own `specs/<yyyymmdd>-<feature-name>/`
+directory name verbatim, so `git tag -l 'main-landing/*'` alone answers
+"what shipped and when" without needing commit-message archaeology
+across however many docs commits happen to sit on `main` around it.
 
 **Agent-docs escape hatch** — anything touching `CLAUDE.md`,
 `AGENTS.md`, `specs/`, `.claude/`, `BACKLOG.md` gets its own commit,
-never mixed with app code. If a docs commit ends up buried in scratch
-history, pull it out before a `reset --soft` or worktree removal
-destroys it:
+never mixed with app code. **Exception: a landed feature's own
+`specs/<feature>/` directory is sealed once its
+`main-landing/<spec-dir-name>` tag exists (`specs/README.md`, "Once a
+feature lands") — this escape hatch is for docs still actively
+changing, never for editing history that's already shipped.** If a
+docs commit ends up buried in scratch history, pull it out before a
+`reset --soft` or worktree removal destroys it:
 
 ```bash
 git log --oneline task/2-done..HEAD -- CLAUDE.md specs/ .claude/ BACKLOG.md
