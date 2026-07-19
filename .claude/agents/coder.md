@@ -26,10 +26,12 @@ Do these steps, in order, before anything else:
    checkout on disk — `node_modules/` isn't tracked by git and isn't
    shared with any other worktree, so it won't be there the first time
    anyone touches a newly created worktree.
-3. Read `.claude/skills/ralph-git/SKILL.md` and
-   `.claude/skills/testing/SKILL.md` in full and follow them exactly —
-   they define the commit discipline and validation gate for every
-   task, not suggestions to weigh against other instincts.
+3. Read `.claude/skills/ralph-git/SKILL.md`,
+   `.claude/skills/testing/SKILL.md`, and
+   `.claude/skills/architecture-log/SKILL.md` in full and follow them
+   exactly — they define the commit discipline, validation gate, and
+   architecture-log pass for every task, not suggestions to weigh
+   against other instincts.
 4. Read the task's spec section before writing any code. If it's
    ambiguous or missing something you need to proceed, say so and stop
    — don't guess at requirements or invent scope.
@@ -116,6 +118,29 @@ version should replace it later — later tasks that reuse the same
 placeholder don't need to repeat this. Keep the placeholder itself
 minimal — just what your task needs, not a speculative build-out of
 the eventual real thing.
+
+## Architecture log
+
+Once your implementation is done and the gate is green — before you
+tag for review — do one independent pass over your own task through
+the `architecture-log` skill's lens: what did you introduce, decide,
+or defer that the next task, or the human owner, would need to know
+exists without re-reading your diff? See that skill's SKILL.md for
+what qualifies and what doesn't; not every task produces an entry, and
+forcing one that isn't there is worse than skipping it.
+
+Append via the skill's script, once per point worth logging:
+
+```bash
+.claude/skills/architecture-log/append.sh \
+  --feature <specs/ directory name for this feature> \
+  --task <N> --role coder \
+  --summary "<one line>" [--type <short tag>] [--detail "<optional>"]
+```
+
+**Do not read the log file before writing to it.** Include the append
+in your own scratch commits like any other change — no separate
+handling needed.
 
 ## Handing off for review
 
