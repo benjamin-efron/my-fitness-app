@@ -49,6 +49,28 @@ than being two distinct failure modes that happen to produce the same
 symptom (subagent not pinned, falls back to absolute paths). Worth
 distinguishing properly before trying to fix anything.
 
+**Update, found live during post-land cleanup (2026-07-19) — the
+"Cannot enter worktree" variant has a reproducible trigger.** Calling
+`EnterWorktree(path: <worktree path>)` from the driver's own session
+failed with *"Cannot enter worktree: ... is the current working
+directory"* — while the Bash tool's shell cwd (which persists across
+Bash calls, per its own tool description) happened to already equal
+that exact path, from an earlier raw `cd` run via Bash rather than
+through `EnterWorktree` itself. Running a plain `cd` back to the repo
+root first, then retrying `EnterWorktree(path: ...)` with no other
+change, succeeded immediately. This matches the bugfix coder's earlier
+error text exactly (see above), and is consistent with that subagent
+having independently run its own `cd`/absolute-path Bash calls into
+the worktree before its first `EnterWorktree` attempt (per its own
+"Before you start" instructions being followed loosely, or a prior
+failed attempt leaving its shell mid-directory). Still doesn't explain
+the *other* error variant ("is the repository root, not an isolated
+worktree" — the opposite condition, cwd NOT already at the target) —
+but this is a real, reproducible trigger for one of the two, not
+random flakiness. Worth checking whether `EnterWorktree` could detect
+and self-correct this case (cwd already at the target path via a means
+other than the tool itself) rather than erroring.
+
 **Backlog:** `EnterWorktree fails intermittently for subagents` item.
 
 ## 2. Docs-only commits landing inside a unit-of-work's boundary — recurring "chore commit gap"
