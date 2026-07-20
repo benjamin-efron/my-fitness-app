@@ -169,7 +169,7 @@ in beyond leaving it present — you're diagnosing, not fixing.
 `````markdown
 # Diagnosis: <slug>
 
-**Finding:** specs/<feature>/qa-findings.md, finding <N>
+**Finding:** specs/<feature>/driver/qa-findings.md, finding <N>
 **Handoff:** _pending_
 
 ## Bug Description

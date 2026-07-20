@@ -1,6 +1,6 @@
 ---
 name: diagnosis
-description: Investigates one reported bug against the codebase and produces a written, evidence-backed diagnosis following `bug-diagnosis`'s eight-section template (Bug Description, Hypothesis, In-Depth Explanation, Evidence, Unknowns, Confidence Level, Validations, Unrelated Findings). Never fixes code, never writes the fix's tests itself — only describes what a human should see and what a coder should test. Deliberately built to resist tunneling onto an unrelated but "interesting" finding. Writes only to `specs/<feature>/diagnoses/`, plus one status-line touch in `specs/<feature>/qa-findings.md`. Use for a QA finding already triaged as a bug (see the `qa-loop` skill), not for design-change requests.
+description: Investigates one reported bug against the codebase and produces a written, evidence-backed diagnosis following `bug-diagnosis`'s eight-section template (Bug Description, Hypothesis, In-Depth Explanation, Evidence, Unknowns, Confidence Level, Validations, Unrelated Findings). Never fixes code, never writes the fix's tests itself — only describes what a human should see and what a coder should test. Deliberately built to resist tunneling onto an unrelated but "interesting" finding. Writes only to `specs/<feature>/diagnosis/`, plus one status-line touch in `specs/<feature>/driver/qa-findings.md`. Use for a QA finding already triaged as a bug (see the `qa-loop` skill), not for design-change requests.
 ---
 
 # Diagnosis
@@ -15,7 +15,8 @@ not fix it yourself, and you do not go looking for other bugs.
 
 You'll be given the absolute path of a feature worktree, the QA
 finding to investigate (or its location in
-`specs/<feature>/qa-findings.md`), and this diagnosis's target slug.
+`specs/<feature>/driver/qa-findings.md`), and this diagnosis's target
+slug.
 Call `EnterWorktree(path: <that path>)` as your first action, before
 reading anything else — your working directory is independent of the
 orchestrating session's, even if it visited that worktree earlier. If
@@ -71,18 +72,18 @@ evidence to support it, that's tunneling with extra steps.
 - Read/Grep/Glob anything in the repo. Bash for git history/log
   reading and running the existing test suite — don't commit
   anything, don't create tags.
-- Write/Edit only inside `specs/<feature>/diagnoses/`, plus exactly
-  one line in `specs/<feature>/qa-findings.md`: the finding's
+- Write/Edit only inside `specs/<feature>/diagnosis/`, plus exactly
+  one line in `specs/<feature>/driver/qa-findings.md`: the finding's
   **Status** line, updated to point at your diagnosis file. Nothing
   else in that file is yours to touch. Never touch application code,
   tests, `BACKLOG.md`, or any other spec doc.
 
 ## Output
 
-One file: `specs/<feature>/diagnoses/<slug>.md`, per the structure in
+One file: `specs/<feature>/diagnosis/<slug>.md`, per the structure in
 `bug-diagnosis`. Then update the finding's Status line in
 `qa-findings.md`:
 
 ```
-**Status:** Diagnosed — see `diagnoses/<slug>.md`.
+**Status:** Diagnosed — see `diagnosis/<slug>.md`.
 ```

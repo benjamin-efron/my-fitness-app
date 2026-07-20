@@ -16,11 +16,13 @@ down, in the skills this one references.
 
 | Role | Does |
 |---|---|
-| Human (you) | Agrees `spec.md` before task work starts; does manual QA testing; resolves anything flagged "Needs human decision"; runs the final `checkout main && merge --ff-only` |
-| Driver (orchestrating session) | Runs from inside the feature's worktree for the feature's duration (`ralph-git`'s "Starting a feature's worktree"), not the main checkout. Everything else that isn't a subagent's job: creates the worktree, picks the next task/bug, spawns `coder`/`reviewer`/`diagnosis`, checks for and compacts stray chore commits before each task, compacts tier 3 -> tier 2, triages QA findings, keeps the branch current with `main`, prepares the landing squash |
+| Human (you) | Agrees `spec.md` before task work starts; does manual QA testing; resolves anything flagged "Needs human decision"; signs off on `readability` findings before any coder is spawned to address them; resolves `architecture`'s accumulated findings at landing; runs the final `checkout main && merge --ff-only` |
+| Driver (orchestrating session) | Runs from inside the feature's worktree for the feature's duration (`ralph-git`'s "Starting a feature's worktree"), not the main checkout. Everything else that isn't a subagent's job: creates the worktree, picks the next task/bug, spawns `coder`/`reviewer`/`diagnosis`/`readability`/`architecture`, checks for and compacts stray chore commits before each task, compacts tier 3 -> tier 2, triages QA findings, keeps the branch current with `main`, prepares the landing squash |
 | `coder` subagent | Implements exactly one task or one bug fix, red-before-green, tags for review |
 | `reviewer` subagent | Reviews exactly one task's or bug fix's diff, verdict: approve / request changes / (separately) needs human decision |
 | `diagnosis` subagent | Investigates exactly one QA-triaged bug, writes the eight-section diagnosis doc, never fixes anything |
+| `readability` subagent | Reviews exactly one unit of work's diff for comment/naming/organization clarity only — not correctness, not spec conformance. Advisory, non-blocking; findings wait on human sign-off before anything acts on them (`.claude/agents/readability.md`) |
+| `architecture` subagent | Re-evaluates after every unit of work, maintaining one evolving findings doc across the whole feature; flags when accumulating decisions warrant a deliberate architectural call. Presented at Stage 4 landing, not a per-task gate (`.claude/agents/architecture.md`) |
 
 ## Stage 1 — Spec and plan
 
@@ -48,10 +50,31 @@ For each `plan.md` task, in order:
 2. Driver spawns `coder` with the task.
 3. Coder implements it, tags `task/N-review` (`ralph-git`).
 4. Driver spawns `reviewer` against that tag.
-5. **Approve** -> driver compacts tier 3 -> tier 2 (`ralph-git`:
-   `reset --soft`, fold `engineering-log.md`, tag `task/N-done`).
+5. **Approve** ->
+   a. Before compacting, driver spawns `readability` and `architecture`
+      against the review tag's diff range (same range the reviewer
+      just used: `task/(N-1)-done..task/N-review`) — both read-only,
+      can run in parallel, each writes only to its own subdirectory
+      (`.claude/agents/readability.md`, `.claude/agents/architecture.md`).
+      Doing this before compacting, not after, means their output
+      lands in the same tier-2 commit as everything else for this
+      task — no separate ad-hoc commit to invent (`ralph-git`).
+   b. Driver compacts tier 3 -> tier 2 (`ralph-git`: `reset --soft`,
+      fold `engineering-log.md` plus the `reviewer`/`readability`/
+      `architecture` output from this step, tag `task/N-done`).
+   c. **`readability`'s findings are a hard stop, not an FYI.** Present
+      them to the human and wait for explicit sign-off before doing
+      anything else with them — in particular, before spawning a
+      `coder` to address any of them. This is deliberate, not the same
+      as "Needs human decision" below: addressing readability findings
+      through the coder isn't wired into this loop yet, so the driver
+      must not act on them unprompted. `architecture`'s findings carry
+      no such stop — they accumulate silently and surface at Stage 4
+      instead.
    **Request changes** -> back to step 2, same coder invocation
-   continues, same review tag moves forward, not a new one.
+   continues, same review tag moves forward, not a new one — don't run
+   `readability`/`architecture` against a diff that's about to change;
+   they only run once a review tag is actually approved.
    **Needs human decision** (can accompany either verdict) -> doesn't
    block this task's compaction; carries forward as an open item
    resolved at Stage 4's landing gate, not here (`reviewer.md`).
@@ -81,7 +104,7 @@ For each `plan.md` task, in order:
 Full detail lives in `qa-loop`; the shape of it:
 
 1. Human does manual/ad-hoc testing, reports findings.
-2. Driver captures them into `specs/<feature>/qa-findings.md`.
+2. Driver captures them into `specs/<feature>/driver/qa-findings.md`.
 3. Driver triages each into **bug**, **design change**, or **already
    tracked**. Design changes and duplicates get cross-referenced
    directly into this feature's `backlog.md` — no subagent needed —
@@ -96,11 +119,12 @@ Full detail lives in `qa-loop`; the shape of it:
    "Surfacing interdependencies between bugs" item.
 5. For every diagnosed bug, sequentially: run it through the same
    coder/reviewer cycle as Stage 2, tagged `bugfix/<slug>` instead of
-   `task/N` (`ralph-git`). The diagnosis doc itself
-   (`specs/<feature>/diagnoses/<slug>.md`) is currently the coder's and
-   reviewer's spec — no separate change-spec or fix-plan doc yet (see
-   `BACKLOG.md`'s "intermediate draft doc" item for where this might
-   head next).
+   `task/N` (`ralph-git`) — including Stage 2 step 5's
+   `readability`/`architecture` spawn and the readability sign-off
+   stop. The diagnosis doc itself (`specs/<feature>/diagnosis/<slug>.md`) is
+   currently the coder's and reviewer's spec — no separate change-spec
+   or fix-plan doc yet (see `BACKLOG.md`'s "intermediate draft doc"
+   item for where this might head next).
 
 **Off-ramp:** a design change severe enough that shipping the feature
 as-is undercuts it — no settled process for landing it before the
@@ -114,10 +138,16 @@ Gate, before running `ralph-git`'s "Landing a feature":
 
 1. Stage 3's QA loop has run and every bug it found is
    `bugfix/<slug>-done`.
-2. Every `## Needs human decision` section across `.claude/review/*.md`
-   is resolved — `grep -l '## Needs human decision' .claude/review/*.md`
+2. Every `## Needs human decision` section across
+   `specs/<feature>/reviewer/*.md` is resolved —
+   `grep -l '## Needs human decision' specs/<feature>/reviewer/*.md`
    finds any still open. A landed feature shouldn't carry forward a
    decision nobody actually made.
+3. `specs/<feature>/architecture/findings.md`, if it exists, is read by
+   the human and every entry in it is either resolved or explicitly
+   deferred (cross-referenced into `backlog.md`/`BACKLOG.md`, same
+   discipline as a QA-loop design change) — not silently left open
+   (`.claude/agents/architecture.md`).
 
 Not yet part of this flow, tracked in `BACKLOG.md` rather than assumed
 here: a whole-spec conformance pass re-reading `spec.md` end-to-end

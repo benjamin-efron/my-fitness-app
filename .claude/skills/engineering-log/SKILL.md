@@ -19,8 +19,9 @@ from a full diff or the raw git log.
 
 Not every task produces an entry — a task simply meeting its
 acceptance criteria is exactly what the reviewer's own
-`.claude/review/task-N.md` already covers, and doesn't belong here
-too. Log something only when it's the kind of thing a technical
+`specs/<feature>/reviewer/task-N.md` already covers, and doesn't
+belong here too. Log something only when it's the kind of thing a
+technical
 manager would want surfaced to them directly, not re-derived by
 reading the code:
 

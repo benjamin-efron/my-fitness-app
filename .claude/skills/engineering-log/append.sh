@@ -50,7 +50,7 @@ if [[ ! -f "$log_file" ]]; then
 
 Cumulative, append-only record of technical decisions, conventions,
 debt, and judgment calls surfaced while building this feature — not a
-per-task acceptance record (see plan.md and .claude/review/ for that).
+per-task acceptance record (see plan.md and reviewer/ for that).
 Written by the coder and reviewer after finishing each task, without
 reading prior entries first, so a point landing multiple times is
 signal, not duplication to prune. Read by the human; never edited by

@@ -3,8 +3,23 @@
 One directory per feature: `specs/<yyyymmdd>-<feature-name>/`, where
 the date is when the spec was first written (not when the feature
 ships) — this keeps directory listing order tracing the order
-features were taken up, independent of how long each one runs. Each
-directory contains:
+features were taken up, independent of how long each one runs.
+
+This directory is the central, version-controlled record of every doc
+generated or used while building the feature — not just the spec and
+plan. It splits into two kinds of content:
+
+- A small set of **top-level, shared docs** — not owned by any single
+  agent, either because they're the feature's defining contract
+  (`spec.md`, `plan.md`) or because multiple roles read or write them
+  jointly (`backlog.md`, `engineering-log.md`).
+- **Subdirectories scoped by the agent that wrote them** — one agent's
+  own output, named after that agent. Any agent may read another's
+  subdirectory freely (handoffs between agents depend on this — e.g.
+  the coder reads `diagnosis/` for a bug fix); scoping is about who
+  *writes* where, not who may read.
+
+## Top-level docs
 
 - **`spec.md`** — what the feature is and does. Written and agreed on
   with a human before any task work starts. The coder and reviewer
@@ -23,6 +38,44 @@ directory contains:
   unrelated to this feature) — see `ralph-git`'s "Chore commits"
   section for the same distinction applied to code changes, not just
   backlog entries. Created on demand, not up front.
+- **`engineering-log.md`** — cumulative, append-only record of
+  decisions/conventions/debt/judgment-calls, written independently by
+  both the coder and reviewer after every unit of work (see
+  `.claude/skills/engineering-log/SKILL.md`). Top-level despite being
+  agent-written because it's deliberately a joint record, not one
+  agent's own output — the whole point is two independent passes
+  landing in the same place.
+
+## Agent-scoped subdirectories
+
+- **`reviewer/`** — the reviewer subagent's own findings, one file per
+  unit of work: `reviewer/task-<N>.md` for a `plan.md` task,
+  `reviewer/bugfix-<slug>.md` for a bug fix, overwritten on a
+  re-review (`.claude/agents/reviewer.md`). Filenames already key each
+  review to a specific unit of work, so a coder reading its own
+  feedback (or a later task reading review history) never has to guess
+  which review belongs to which task.
+- **`diagnosis/`** — the diagnosis subagent's evidence-backed
+  write-ups for QA-loop bugs, one file per bug:
+  `diagnosis/<slug>.md` (`.claude/agents/diagnosis.md`, `bug-diagnosis`
+  skill).
+- **`readability/`** — the readability subagent's per-unit-of-work
+  notes on comment/naming/organization clarity, one file per unit of
+  work: `readability/task-<N>.md` / `readability/bugfix-<slug>.md`
+  (`.claude/agents/readability.md`).
+- **`architecture/`** — the architecture subagent's one evolving
+  `findings.md`, updated (not just appended to) after every unit of
+  work across the whole feature (`.claude/agents/architecture.md`).
+- **`driver/`** — docs the orchestrating driver session itself
+  produces, not any subagent: currently just `qa-findings.md`, the raw
+  QA-loop capture (`qa-loop` skill). "Driver" gets its own scoped
+  subdirectory the same as a subagent, even though it isn't one,
+  because the naming convention (subdirectory = who wrote it) still
+  applies.
+
+Created on demand — a feature that never hits the QA loop has no
+`diagnosis/`, one that never gets flagged by architecture has an empty
+or absent `architecture/`.
 
 ## What `spec.md` must contain
 

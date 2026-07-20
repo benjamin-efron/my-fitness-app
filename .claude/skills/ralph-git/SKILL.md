@@ -22,7 +22,7 @@ from:
 
 - **`task/N`** — a `plan.md` task, numbered per that doc.
 - **`bugfix/<slug>`** — a fix for one QA-loop diagnosis
-  (`specs/<feature>/diagnoses/<slug>.md`), slugged the same as that
+  (`specs/<feature>/diagnosis/<slug>.md`), slugged the same as that
   diagnosis's filename.
 - **`chore/<slug>`** — a feature-local cross-task hygiene change that
   isn't any single task's or bug fix's job. See "Chore commits" below
@@ -137,7 +137,9 @@ always pointing at the current ready-for-review state.
 
 **Completing a unit of work (tier 3 -> tier 2)** — once its
 verification gate (typecheck/lint/tests) passes and the reviewer
-subagent approves the review tag:
+subagent approves the review tag, and — per `ralph-loop` Stage 2 step
+5 — the `readability` and `architecture` subagents have run against
+that same review tag:
 
 ```bash
 git reset --soft task/2-done       # previous boundary tag, of either kind
@@ -151,14 +153,20 @@ doc never points at a tag that's about to be deleted:
 **Handoff:** `task/3-review`   ->   **Handoff:** `task/3-done`
 ```
 
-Check `git status` for an uncommitted
-`specs/<feature>/engineering-log.md` too — the reviewer appends to it
-via the `engineering-log` skill's script but never commits, so its
-entries for this unit of work are sitting uncommitted in the working
-tree until this step folds them in.
+Check `git status` for uncommitted output before committing — none of
+`reviewer`, `readability`, `architecture`, or the `engineering-log`
+script ever commit their own writes, so all of it is sitting
+uncommitted in the working tree until this step folds it in:
+`specs/<feature>/engineering-log.md`,
+`specs/<feature>/reviewer/task-<N>.md`,
+`specs/<feature>/readability/task-<N>.md` (if the readability pass
+produced anything), and `specs/<feature>/architecture/findings.md` (if
+this task's pass changed it).
 
 ```bash
-git add specs/<feature>/plan.md specs/<feature>/engineering-log.md
+git add specs/<feature>/plan.md specs/<feature>/engineering-log.md \
+        specs/<feature>/reviewer/task-3.md specs/<feature>/readability/task-3.md \
+        specs/<feature>/architecture/findings.md
 git commit -m "task: <task-id> — <summary>  (spec: specs/<feature>/plan.md#<task-id>)"
 git tag task/3-done
 git tag -d task/3-review            # superseded — keeping it around only invites it going stale
@@ -167,11 +175,18 @@ git tag -d task/3-review            # superseded — keeping it around only invi
 For a bug fix, the same shape, different doc and prefix:
 
 ```bash
-git add specs/<feature>/diagnoses/<slug>.md specs/<feature>/engineering-log.md
-git commit -m "bugfix: <slug> — <summary>  (diagnosis: specs/<feature>/diagnoses/<slug>.md)"
+git add specs/<feature>/diagnosis/<slug>.md specs/<feature>/engineering-log.md \
+        specs/<feature>/reviewer/bugfix-<slug>.md specs/<feature>/readability/bugfix-<slug>.md \
+        specs/<feature>/architecture/findings.md
+git commit -m "bugfix: <slug> — <summary>  (diagnosis: specs/<feature>/diagnosis/<slug>.md)"
 git tag bugfix/<slug>-done
 git tag -d bugfix/<slug>-review
 ```
+
+Omit whichever `readability`/`architecture` path didn't actually
+change from the `git add` — a task with nothing worth flagging in
+either produces no file (`readability`) or no diff to its existing one
+(`architecture`); don't force an empty commit.
 
 ## Chore commits
 

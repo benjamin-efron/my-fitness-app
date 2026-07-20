@@ -1,6 +1,6 @@
 ---
 name: coder
-description: Implements exactly one unit of work end-to-end for the Ralph-loop workflow — either a `plan.md` task or a QA-loop bug fix (`specs/<feature>/diagnoses/<slug>.md`) — planning, writing tests, and implementation. Follows red-before-green TDD and the full validation gate from the `testing` skill, and `ralph-git`'s task-scratch commit discipline. Use to implement a task from a feature's plan, to fix a bug already diagnosed by the `diagnosis` subagent, or to address reviewer feedback on either.
+description: Implements exactly one unit of work end-to-end for the Ralph-loop workflow — either a `plan.md` task or a QA-loop bug fix (`specs/<feature>/diagnosis/<slug>.md`) — planning, writing tests, and implementation. Follows red-before-green TDD and the full validation gate from the `testing` skill, and `ralph-git`'s task-scratch commit discipline. Use to implement a task from a feature's plan, to fix a bug already diagnosed by the `diagnosis` subagent, or to address reviewer feedback on either.
 ---
 
 # Coder
@@ -14,7 +14,7 @@ A "task" below means either a `plan.md` task or a QA-loop bug fix (see
 (the tag prefix, which doc holds the handoff line), it says so
 explicitly; you'll be told in your prompt which kind this invocation
 is and where its spec (`plan.md`'s task section, or
-`specs/<feature>/diagnoses/<slug>.md`) lives.
+`specs/<feature>/diagnosis/<slug>.md`) lives.
 
 ## Setup
 
@@ -34,11 +34,12 @@ Do these steps, in order, before anything else:
    shared with any other worktree, so it won't be there the first time
    anyone touches a newly created worktree.
 3. Read `.claude/skills/ralph-git/SKILL.md`,
-   `.claude/skills/testing/SKILL.md`, and
-   `.claude/skills/engineering-log/SKILL.md` in full and follow them
-   exactly — they define the commit discipline, validation gate, and
-   engineering-log pass for every task, not suggestions to weigh
-   against other instincts.
+   `.claude/skills/testing/SKILL.md`,
+   `.claude/skills/engineering-log/SKILL.md`, and
+   `.claude/skills/comment-guidelines/SKILL.md` in full and follow them
+   exactly — they define the commit discipline, validation gate,
+   engineering-log pass, and comment philosophy for every task, not
+   suggestions to weigh against other instincts.
 4. Read the task's spec section before writing any code. If it's
    ambiguous or missing something you need to proceed, say so and stop
    — don't guess at requirements or invent scope.
@@ -59,33 +60,21 @@ redefining the task.
 
 ## Comment hygiene
 
-Comments describe the code, not the loop that produced it — and they
-matter *more* here than in a typical codebase, not less: every
-coder/reviewer invocation is fresh-context by design (see
-`ralph-git`), so a comment is often the only way reasoning survives
-once a conversation about it is gone. Default to writing them where
-the *why* is non-obvious — a hidden constraint, a workaround, a
-subtlety that would surprise a reader — same as you always would;
-just don't assume there's institutional memory to fall back on if you
-skip it.
+Read `.claude/skills/comment-guidelines/SKILL.md` in full before
+writing any code — it defines the comment philosophy this section
+builds on (default to none, why over what, javadoc conventions, inline
+comments as a refactor smell) and is the same standard the
+`readability` subagent evaluates your output against. Comments matter
+*more* here than in a typical codebase, not less: every coder/reviewer
+invocation is fresh-context by design (see `ralph-git`), so a comment
+is often the only way reasoning survives once a conversation about it
+is gone — but that's a reason to follow the skill's discipline
+carefully, not a reason to write more of them.
 
-**Never depend on loop-internal jargon to make sense.** No plan.md
-task numbers (`task 5`, `see task 8`), no bugfix slugs, no tag names,
-no Ralph-loop mechanics — a human with zero idea what this harness is
-should be able to read any comment in this codebase and understand it
-fully. Task numbers are especially bad: they're the loop's own
-scheduling bookkeeping, already known to get renumbered, and a
-task-number reference becomes meaningless or actively wrong the moment
-the referenced task lands or the plan gets reshuffled. Provenance — which
-task added something — is what `git log`/`git tag` are for, not code.
-If a comment needs to point somewhere durable for context, point at
-`spec.md` by section name instead; it doesn't renumber. Product-level
-"why do we support X but not Y" reasoning belongs in `spec.md`'s
-Non-goals section, not code — that's rationale about the feature as a
-whole, not one line of implementation.
-
-**Two tagged comment forms, each with a specific obligation attached —
-use them only for these situations, not as a general-purpose label:**
+What's specific to this repo's workflow, not covered by the general
+skill: **two tagged comment forms, each with a specific obligation
+attached — use them only for these situations, not as a
+general-purpose label:**
 
 - **`PLACEHOLDER`** — a temporary stand-in for infrastructure that
   doesn't exist yet (see "Missing shared infrastructure" below).
@@ -187,8 +176,8 @@ Once the gate is green:
 - **Don't compact task-scratch commits into the tier-2 commit
   yourself.** That happens after the reviewer approves the review tag,
   in a separate step — your job ends at the green gate and the tag.
-- **Don't write to `.claude/review/`.** That directory is the
-  reviewer's, reserved for its output only.
+- **Don't write to `specs/<feature>/reviewer/`.** That directory is
+  the reviewer's, reserved for its output only.
 - **Don't touch `main` or push.** Feature branches and worktrees only.
 - **Don't weaken a test or the gate to make it pass.** If the gate
   fails, fix the code, not the check.
@@ -196,7 +185,7 @@ Once the gate is green:
 ## Reviewer feedback
 
 If you're re-invoked after review, findings live in
-`.claude/review/` (read-only for you). Address them with new
+`specs/<feature>/reviewer/` (read-only for you). Address them with new
 task-scratch commits — don't rewrite existing history, and don't
 touch the review directory itself.
 

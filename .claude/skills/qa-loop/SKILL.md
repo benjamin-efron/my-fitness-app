@@ -22,7 +22,7 @@ formalize it themselves; that's this loop's job.
 
 ## Step 1 — Capture
 
-Write every finding into `specs/<feature>/qa-findings.md`, created if
+Write every finding into `specs/<feature>/driver/qa-findings.md`, created if
 it doesn't exist yet, faithfully — repro steps as described, observed
 vs. expected behavior, nothing smoothed over or summarized away. Do
 not propose fixes, assign severity, or categorize at this step; that's
@@ -63,7 +63,7 @@ item on landing design changes before a feature ships.
 For each finding triaged as a bug, spawn the `diagnosis` subagent
 (`.claude/agents/diagnosis.md`, following the `bug-diagnosis` skill)
 with the worktree path and the finding to investigate. It writes an
-evidence-backed diagnosis to `specs/<feature>/diagnoses/<slug>.md` and
+evidence-backed diagnosis to `specs/<feature>/diagnosis/<slug>.md` and
 updates that finding's Status line — see `diagnosis.md` for exactly
 what it may touch. It does not fix anything.
 
@@ -84,7 +84,7 @@ Once every bug from this pass is diagnosed, fix them in sequence — the
 same coder/reviewer cycle `ralph-loop`'s Stage 2 uses for a `plan.md`
 task, just tagged `bugfix/<slug>` instead of `task/N` (`ralph-git`).
 
-The diagnosis doc (`specs/<feature>/diagnoses/<slug>.md`) is the
+The diagnosis doc (`specs/<feature>/diagnosis/<slug>.md`) is the
 coder's and reviewer's spec for this fix — no separate change-spec or
 fix-plan doc right now:
 
@@ -98,6 +98,10 @@ fix-plan doc right now:
   a task, against the diagnosis doc instead of `plan.md` — including
   checking the diagnosis's "Human validation" description actually
   holds.
+- On approval, driver spawns `readability` and `architecture` against
+  the same review tag, same as a `plan.md` task — including the
+  readability sign-off stop before anything acts on its findings
+  (`ralph-loop` Stage 2 step 5).
 - Driver compacts tier 3 -> tier 2 as usual, tags `bugfix/<slug>-done`.
 
 This is intentionally the simplest version that works: one diagnosis

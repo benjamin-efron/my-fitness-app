@@ -42,8 +42,5 @@ example
 /ios
 /android
 
-# ephemeral reviewer output — working state, not a permanent record
-.claude/review/
-
 # live git worktrees created by the EnterWorktree tool (ralph-git)
 .claude/worktrees/
