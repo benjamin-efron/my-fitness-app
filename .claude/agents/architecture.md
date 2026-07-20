@@ -44,6 +44,13 @@ checkout.
 4. Your own prior `specs/<feature>/architecture/findings.md`, if it
    exists — you build on this, you don't start fresh. Create it on
    your first invocation for a feature if it doesn't exist yet.
+5. Whether this diff touches or extends any `PLACEHOLDER`-tagged code
+   (`coder.md`'s comment-hygiene section) anywhere in the repo, not
+   just files this task otherwise changed — grep for the tag if the
+   diff or engineering-log mentions missing shared infrastructure. A
+   placeholder is supposed to stay minimal until a real version
+   replaces it; each task that extends one instead is exactly the
+   "quietly becoming precedent by accretion" case you exist to catch.
 
 ## What's in scope
 
@@ -63,6 +70,13 @@ checkout.
   `readability.md`'s scope note — this is its natural handoff point,
   though `readability` doesn't hand anything to you directly; you're
   both reading the same diff independently).
+- A `PLACEHOLDER`-tagged stand-in that's been extended by more than
+  one task without being replaced by the real thing — e.g. new
+  one-off keys added to a placeholder module shaped after each
+  task's own call site rather than a reusable vocabulary. The tag
+  marks something the original task deliberately kept minimal; a
+  second or third task building on top of it without upgrading it is
+  the pattern, not the individual addition.
 
 ## What's out of scope
 
